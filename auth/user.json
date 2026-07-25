@@ -1,0 +1,157 @@
+{
+  "cookies": [
+    {
+      "name": "CLID",
+      "value": "6980a60a39ea47c3818c8f1aae18f5a3.20260724.20270724",
+      "domain": "www.clarity.ms",
+      "path": "/",
+      "expires": 1816435138.987262,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_clck",
+      "value": "o8gpta%5E2%5Eg80%5E0%5E2396",
+      "domain": ".seedlingsocial.org",
+      "path": "/",
+      "expires": 1816435139,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "MUID",
+      "value": "0A3763F84DA96199325E74584CC460CA",
+      "domain": ".bing.com",
+      "path": "/",
+      "expires": 1818595142.357097,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MR",
+      "value": "0",
+      "domain": ".c.bing.com",
+      "path": "/",
+      "expires": 1785503942.357162,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "SRM_B",
+      "value": "0A3763F84DA96199325E74584CC460CA",
+      "domain": ".c.bing.com",
+      "path": "/",
+      "expires": 1818595142.357177,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "SM",
+      "value": "C",
+      "domain": ".c.clarity.ms",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MUID",
+      "value": "0A3763F84DA96199325E74584CC460CA",
+      "domain": ".clarity.ms",
+      "path": "/",
+      "expires": 1818595141.474904,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "MR",
+      "value": "0",
+      "domain": ".c.clarity.ms",
+      "path": "/",
+      "expires": 1785503941.474925,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ANONCHK",
+      "value": "0",
+      "domain": ".c.clarity.ms",
+      "path": "/",
+      "expires": 1784899741.474935,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "m",
+      "value": "08077031-0f82-45fb-8022-70077c40fcbdc21177",
+      "domain": "m.stripe.com",
+      "path": "/",
+      "expires": 1819459144.883419,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "__stripe_mid",
+      "value": "bb70a874-f2df-4da2-b4cb-18ebcb46a83d153a94",
+      "domain": ".qa.seedlingsocial.org",
+      "path": "/",
+      "expires": 1816435144,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "__stripe_sid",
+      "value": "dc71c7b3-e42b-4190-a553-c1a306caa5db5f219d",
+      "domain": ".qa.seedlingsocial.org",
+      "path": "/",
+      "expires": 1784900944,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "_clsk",
+      "value": "vt2e3u%5E1784899143943%5E2%5E1%5Ev.clarity.ms%2Fcollect",
+      "domain": ".seedlingsocial.org",
+      "path": "/",
+      "expires": 1784985543,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://qa.seedlingsocial.org",
+      "localStorage": [
+        {
+          "name": "seedling-theme",
+          "value": "light"
+        },
+        {
+          "name": "jhi-authenticationToken",
+          "value": "\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrYXZpbmFwQHVpdC5hYy5pbiIsImV4cCI6MTc4NzQ5MTE0NSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzg0ODk5MTQ1LCJ1c2VySWQiOjE1MDF9.5uLx7RZEmGrcQQVChDg0nQ2LlOQ731uUKWfAxlNh_E3I5Zw97CpUk5e86Z-jxrOiJAj9MCJR-32vK26-P4pcbw\""
+        },
+        {
+          "name": "seedling.appNudge.lastInteraction",
+          "value": "{\"ts\":1784899143042,\"action\":\"dismiss\"}"
+        },
+        {
+          "name": "seedling_last_login",
+          "value": "{\"method\":\"credentials\",\"identifier\":\"kavinap@uit.ac.in\",\"savedAt\":1784899146227}"
+        }
+      ]
+    }
+  ]
+}

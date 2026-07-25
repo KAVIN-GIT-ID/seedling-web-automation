@@ -1,0 +1,79 @@
+import { test, expect } from '../../../fixtures';
+import { seedlingTestData } from '../../utils/seedlingdata';
+import { SeedlingPage } from '../../../pages/SeedlingPage';
+
+// ✅ storageState auto-loaded — already logged in, no login code needed
+
+test.describe('Create Seedling - Full Flow', () => {
+
+  test('creates a complete seedling with all steps', async ({ page }) => {
+    test.setTimeout(10 * 60 * 1000);
+    const seedlingPage = new SeedlingPage(page);
+
+    await page.goto('/');
+
+    // Step 1 — Open form
+    await seedlingPage.openCreateSeedling();
+
+    // Step 2 — Select charity
+    await seedlingPage.selectCharity(
+      seedlingTestData.charitySearch,
+      seedlingTestData.charityLabel
+    );
+
+    // Step 3 — Seedling details + co-sponsor + campaign
+    await seedlingPage.fillSeedlingDetails({
+      title:               seedlingTestData.title,
+      description:         seedlingTestData.description,
+      coSponsorSearch:     seedlingTestData.coSponsorSearch,
+      coSponsorName:       seedlingTestData.coSponsorName,
+      campaignTitle:       seedlingTestData.campaignTitle,
+      campaignDescription: seedlingTestData.campaignDescription,
+    });
+
+    // Step 4 — Goals
+    await seedlingPage.fillGoals({
+      seedlingGoal: seedlingTestData.seedlingGoal,
+      campaignGoal: seedlingTestData.campaignGoal,
+    });
+
+    // Step 5 — All incentives
+    await seedlingPage.fillIncentives({
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+    });
+
+    // Step 6 — Challenge match
+    await seedlingPage.fillChallengeMatch(seedlingTestData.matchingAmount);
+
+    // Step 7 — Video upload
+    await seedlingPage.uploadVideo(seedlingTestData.mediaFile);
+
+    // Step 8 — Submit
+  // Step 8 — Verify review page then submit
+await seedlingPage.submitSeedling({
+  charityLabel:              seedlingTestData.charityLabel,
+  title:                     seedlingTestData.title,
+  description:               seedlingTestData.description,
+  coSponsorName:             seedlingTestData.coSponsorName,
+  campaignTitle:             seedlingTestData.campaignTitle,
+  campaignDescription:       seedlingTestData.campaignDescription,
+  seedlingGoal:              seedlingTestData.seedlingGoal,
+  campaignGoal:              seedlingTestData.campaignGoal,
+  tier1Description:          seedlingTestData.tier1Description,
+  tier2Description:          seedlingTestData.tier2Description,
+  tier3Description:          seedlingTestData.tier3Description,
+  tier4Description:          seedlingTestData.tier4Description,
+  highestDonorDescription:   seedlingTestData.highestDonorDescription,
+  groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+  campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+  matchingAmount:            seedlingTestData.matchingAmount,
+});
+    
+  });
+});
