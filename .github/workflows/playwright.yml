@@ -17,8 +17,21 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: npm ci
+    - name: Get installed Playwright version
+      id: playwright-version
+      run: echo "version=$(npm ls @playwright/test --json | jq -r '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-browsers-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps
+    - name: Install OS dependencies only (cache hit)
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps
     - name: Run Playwright tests
       run: npx playwright test ${{ github.event.inputs.test_file }}
     - uses: actions/upload-artifact@v4
