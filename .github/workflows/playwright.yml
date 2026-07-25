@@ -1,9 +1,11 @@
 name: Playwright Tests
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: 'Path to the test file to run (leave empty to run all tests)'
+        required: false
+        default: ''
 jobs:
   test:
     timeout-minutes: 60
@@ -18,7 +20,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npx playwright test ${{ github.event.inputs.test_file }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
