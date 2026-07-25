@@ -25,5 +25,5 @@ export const seedlingTestData = {
   matchingAmount: '$100',
 
   // ✅ Your exact video path
-  mediaFile: '/Users/uitglobalsolutions/Seedling Web Automation/videos/2328_My_Seedling_Test_1777062279329.mp4',
+  mediaFile: '/Users/uitglobalsolutions/Seedling Web Automation/videos/19548_Test_Promo_To_Live_1777396685503.mp4',
 };
