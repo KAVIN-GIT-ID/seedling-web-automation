@@ -40,3 +40,25 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+    - name: Send email report
+      if: ${{ !cancelled() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Playwright Run ${{ job.status }} - ${{ github.event.inputs.test_file || 'All Tests' }}"
+        to: ${{ secrets.TL_EMAIL }}
+        from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
+        body: |
+          Playwright test run finished.
+
+          Status: ${{ job.status }}
+          Test file: ${{ github.event.inputs.test_file || 'All tests' }}
+          Branch: ${{ github.ref_name }}
+          Triggered by: ${{ github.actor }}
+          Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          The full HTML report is attached in the GitHub Actions artifacts (link above, under "Artifacts").
+        attachments: playwright-report/index.html
