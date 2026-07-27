@@ -28,22 +28,25 @@ export default defineConfig({
       testMatch: '**/auth.setup.ts',
     },
     {
-      name: 'chromium',
+      // Tests that NEED a logged-in session (existing tests/auth/... files)
+      name: 'authenticated',
+      testDir: './tests/auth',
+      testIgnore: '**/auth.setup.ts',
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'auth/user.json',
       },
-      dependencies: ['setup'],
-      testIgnore: '**/auth.setup.ts',
+      dependencies: ['setup'],   // <- login runs first, only for THIS project
     },
-    // {
-    //   name: 'firefox',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     storageState: 'auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    //   testIgnore: '**/auth.setup.ts',
-    // },
+    {
+      // Tests that must run as a guest — NO login, straight to baseURL
+      name: 'unauth',
+      testDir: './tests/unauth',
+      use: {
+        ...devices['Desktop Chrome'],
+        // no storageState, no dependencies — fresh guest browser every time
+      },
+      // no "dependencies" key at all = setup never runs for this project
+    },
   ],
 });
