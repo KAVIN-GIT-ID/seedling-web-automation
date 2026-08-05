@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
+    "test:qa": "cross-env ENV=qa playwright test",
+    "test:qa:ui": "cross-env ENV=qa playwright test --ui",
+    "test:prod": "cross-env ENV=prod playwright test",
+    "test:prod:ui": "cross-env ENV=prod playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui",
-    "test:chrome": "playwright test --project=chromium",
     "test:report": "playwright show-report",
     "clean:auth": "rm -f auth/user.json"
   },
@@ -19,6 +20,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.3",
     "@zerostep/playwright": "^0.1.5",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "typescript": "^6.0.3"
   },

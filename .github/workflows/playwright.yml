@@ -2,10 +2,27 @@ name: Playwright Tests
 on:
   workflow_dispatch:
     inputs:
-      test_file:
-        description: 'Path to the test file to run (leave empty to run all tests)'
-        required: false
-        default: ''
+      environment:
+        description: 'Environment to run tests against'
+        type: choice
+        required: true
+        options:
+          - qa
+          - prod
+        default: 'qa'
+      component:
+        description: 'Component to test'
+        type: choice
+        required: true
+        options:
+          - all
+          - prod-suite
+          - login
+          - search
+          - share
+          - donation
+          - create-seedling
+        default: 'all'
 jobs:
   test:
     timeout-minutes: 60
@@ -32,8 +49,36 @@ jobs:
     - name: Install OS dependencies only (cache hit)
       if: steps.playwright-cache.outputs.cache-hit == 'true'
       run: npx playwright install-deps
+      
+    - name: Determine Test Command
+      id: set-command
+      run: |
+        CMD="npm run test:${{ github.event.inputs.environment }}"
+        COMP="${{ github.event.inputs.component }}"
+        
+        if [ "$COMP" = "prod-suite" ]; then
+          CMD="$CMD -- --grep @prod"
+        elif [ "$COMP" = "login" ]; then
+          CMD="$CMD -- tests/auth/login.spec.ts"
+        elif [ "$COMP" = "search" ]; then
+          CMD="$CMD -- tests/unauth/seedling/search-charity.spec.ts"
+        elif [ "$COMP" = "share" ]; then
+          CMD="$CMD -- **/share-all-channels.spec.ts"
+        elif [ "$COMP" = "donation" ]; then
+          CMD="$CMD -- tests/auth/dashboard/donation.spec.ts"
+        elif [ "$COMP" = "create-seedling" ]; then
+          CMD="$CMD -- tests/auth/seedling/create-seedling.spec.ts"
+        fi
+        
+        echo "TEST_COMMAND=$CMD" >> $GITHUB_ENV
+
     - name: Run Playwright tests
-      run: npx playwright test ${{ github.event.inputs.test_file }}
+      run: ${{ env.TEST_COMMAND }}
+      env:
+        BASE_URL: ${{ secrets.BASE_URL }}
+        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+        TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+        
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
@@ -48,17 +93,18 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Playwright Run ${{ job.status }} - ${{ github.event.inputs.test_file || 'All Tests' }}"
+        subject: "Playwright Run ${{ job.status }} - Env: ${{ github.event.inputs.environment }} - Component: ${{ github.event.inputs.component }}"
         to: ${{ secrets.TL_EMAIL }}
         from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
         body: |
           Playwright test run finished.
-
+          
           Status: ${{ job.status }}
-          Test file: ${{ github.event.inputs.test_file || 'All tests' }}
+          Environment: ${{ github.event.inputs.environment }}
+          Component: ${{ github.event.inputs.component }}
           Branch: ${{ github.ref_name }}
           Triggered by: ${{ github.actor }}
           Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
+          
           The full HTML report is attached in the GitHub Actions artifacts (link above, under "Artifacts").
         attachments: playwright-report/index.html

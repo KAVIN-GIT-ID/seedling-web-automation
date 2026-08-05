@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { SearchPage } from '../../../pages/SearchPage';
 import { charitySearchCases } from '../../utils/searchdata';
 
-test.describe('Guest - Charity Search', () => {
+test.describe('Guest - Charity Search @prod', () => {
   for (const searchCase of charitySearchCases) {
     test(`Search and view "${searchCase.query}"`, async ({ page }) => {
       const searchPage = new SearchPage(page);

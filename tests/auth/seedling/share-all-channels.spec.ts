@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { SeedlingSharePage } from '../../../pages/SeedlingSharePage';
 
-test.describe.serial('Seedling Video Share - all channels', () => {
+test.describe.serial('Seedling Video Share - all channels @prod', () => {
   test.beforeEach(async ({ context, page }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');

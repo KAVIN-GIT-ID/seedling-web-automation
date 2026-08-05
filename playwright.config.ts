@@ -2,8 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// ✅ Load .env before accessing process.env
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Read the ENV variable, defaulting to 'qa'
+const env = process.env.ENV || 'qa';
+
+// ✅ Load specific .env file based on environment
+dotenv.config({ path: path.resolve(__dirname, `.env.${env}`) });
 
 const BASE_URL = process.env.BASE_URL ?? 'https://qa.seedlingsocial.org';
 

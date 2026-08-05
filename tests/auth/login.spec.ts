@@ -5,7 +5,7 @@ import { env } from '../config/env';
 // These tests manage their own session — they test the login flow itself
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test.describe('Login page', () => {
+test.describe('Login page @prod', () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
