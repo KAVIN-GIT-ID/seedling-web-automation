@@ -28,6 +28,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     permissions:
       contents: write
     steps:
@@ -69,10 +71,7 @@ jobs:
       run: |
         ${{ env.TEST_COMMAND }} 2>&1 | tee test-output.log
 
-    - name: Zip Playwright Report
-      if: ${{ !cancelled() }}
-      run: zip -r playwright-report.zip playwright-report/
-        
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
@@ -104,7 +103,7 @@ jobs:
         echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
         echo "$REPORT_URL" >> email-body.txt
         echo "" >> email-body.txt
-        echo "(Note: It may take 1-2 minutes for the link to become active after the email is sent. The zip is still attached as a backup)." >> email-body.txt
+        echo "(Note: It may take 1-2 minutes for the link to become active after the email is sent)." >> email-body.txt
         echo "" >> email-body.txt
         echo "--- TEST EXECUTION SUMMARY ---" >> email-body.txt
         tail -n 100 test-output.log >> email-body.txt
@@ -121,4 +120,3 @@ jobs:
         to: ${{ secrets.TL_EMAIL }}
         from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
         body: file://email-body.txt
-        attachments: playwright-report.zip
