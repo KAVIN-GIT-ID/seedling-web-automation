@@ -88,6 +88,22 @@ jobs:
         publish_dir: ./playwright-report
         destination_dir: ${{ github.run_id }}
         keep_files: true
+
+    - name: Wait for GitHub Pages Deployment
+      if: ${{ !cancelled() }}
+      run: |
+        REPORT_URL="https://Kavin-uit.github.io/playwright-reports/${{ github.run_id }}/"
+        echo "Waiting for $REPORT_URL to be live..."
+        for i in {1..60}; do
+          STATUS_CODE=$(curl -L -o /dev/null -s -w "%{http_code}\n" "$REPORT_URL")
+          if [ "$STATUS_CODE" -eq 200 ]; then
+            echo "Report is live!"
+            exit 0
+          fi
+          echo "Still waiting (Status: $STATUS_CODE). Retrying in 10s..."
+          sleep 10
+        done
+        echo "Warning: Timeout waiting for report to be live."
         
     - name: Prepare Email Body
       if: ${{ !cancelled() }}
@@ -103,8 +119,6 @@ jobs:
         echo "" >> email-body.txt
         echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
         echo "$REPORT_URL" >> email-body.txt
-        echo "" >> email-body.txt
-        echo "(Note: It may take 1-2 minutes for the link to become active after the email is sent)." >> email-body.txt
         echo "" >> email-body.txt
 
     - name: Send email report
