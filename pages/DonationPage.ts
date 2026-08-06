@@ -28,7 +28,7 @@ export class DonationPage extends BasePage {
         if (visibleHeading) {
           await visibleHeading.scrollIntoViewIfNeeded();
           await visibleHeading.click();
-          await this.page.waitForLoadState('networkidle', { timeout: 300000 });
+          await this.page.waitForLoadState('load');
           return "success";
         }
 
