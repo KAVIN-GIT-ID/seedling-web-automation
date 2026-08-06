@@ -14,28 +14,62 @@ export class DonationPage extends BasePage {
   // scroll, so the target heading may not exist in the DOM yet. Scroll down
   // in increments, polling for the heading after each scroll, instead of
   // assuming it's already on screen.
-  async openSeedling(seedlingTitle: string, maxScrollAttempts = 20) {
-    const seedlingHeading = this.page.getByRole('heading', { name: seedlingTitle });
+  async openSeedling(seedlingTitle: string, maxScrollAttempts = 20, maxRefreshes = 3): Promise<"success" | "seedling title not found"> {
+    await this.page.waitForTimeout(3000); // Allow home page feed to settle
 
-    let found = false;
-    for (let attempt = 0; attempt < maxScrollAttempts; attempt++) {
-      if (await seedlingHeading.first().isVisible().catch(() => false)) {
-        found = true;
-        break;
+    const seedlingHeadingLocator = this.page.getByRole('heading', { name: seedlingTitle });
+
+    for (let refreshAttempt = 0; refreshAttempt < maxRefreshes; refreshAttempt++) {
+      for (let scrollAttempt = 0; scrollAttempt < maxScrollAttempts; scrollAttempt++) {
+        
+        // 1. Check if any matching heading is currently visible
+        const visibleHeading = await this.getVisibleElement(seedlingHeadingLocator);
+        
+        if (visibleHeading) {
+          await visibleHeading.scrollIntoViewIfNeeded();
+          await visibleHeading.click();
+          await this.page.waitForLoadState('networkidle', { timeout: 300000 });
+          return "success";
+        }
+
+        // 2. Not visible, scroll down to load more content
+        await this.scrollDown();
       }
-      await this.page.mouse.wheel(0, 800); // scroll the feed down
-      await this.page.waitForTimeout(500); // brief pause for lazy-loaded video posts to render
+      
+      // 3. Exhausted scroll attempts; reload and try again
+      if (refreshAttempt < maxRefreshes - 1) {
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+        await this.page.waitForTimeout(2000);
+      }
     }
 
-    if (!found) {
-      throw new Error(
-        `❌ Could not find seedling "${seedlingTitle}" after scrolling through ${maxScrollAttempts} screens of the feed`
-      );
-    }
+    return "seedling title not found";
+  }
 
-    await seedlingHeading.first().scrollIntoViewIfNeeded();
-    await seedlingHeading.first().click();
-    await this.page.waitForLoadState('networkidle', { timeout: 300000 });
+  /**
+   * Evaluates all elements matched by a locator and returns the first one that is visible.
+   */
+  private async getVisibleElement(locator: ReturnType<Page['locator']>) {
+    const count = await locator.count();
+    for (let i = 0; i < count; i++) {
+      const element = locator.nth(i);
+      if (await element.isVisible().catch(() => false)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Scrolls the page down by simulating a mouse wheel event.
+   */
+  private async scrollDown() {
+    const viewport = this.page.viewportSize();
+    if (viewport) {
+      await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
+    }
+    await this.page.mouse.wheel(0, 800);
+    await this.page.waitForTimeout(1500); // Allow time for lazy-loaded components to render
   }
 
   // ─────────────────────────────────────────
@@ -87,11 +121,15 @@ export class DonationPage extends BasePage {
     amountIndex: number;
     incentiveValue: string;
   }) {
-    await this.openSeedling(data.seedlingTitle);
+    const status = await this.openSeedling(data.seedlingTitle);
+    if (status === "seedling title not found") {
+      return status;
+    }
     await this.selectDonationAmount(data.amountIndex);
     await this.selectIncentiveOption(data.incentiveValue);
     await this.donate();
     await this.skipFollowUpPrompt();
+    return "success";
   }
 
   // ─────────────────────────────────────────

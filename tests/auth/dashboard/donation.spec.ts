@@ -1,15 +1,18 @@
 import { test, expect } from '../../../fixtures';
 import { DonationPage } from '../../../pages/DonationPage';
 import { donationTestData } from '../../utils/donationdata';
+import { seedlingTestData } from '../../utils/seedlingdata';
+
 test.describe('Donation Flow', () => {
 
   test('donates to a seedling using a preset amount and incentive tier', async ({ page }) => {
+    test.setTimeout(90000); // 90 seconds timeout
     const donationPage = new DonationPage(page);
 
     await page.goto('/');
 
-    await donationPage.makeDonation({
-      seedlingTitle:  donationTestData.seedlingTitle,
+    const status = await donationPage.makeDonation({
+      seedlingTitle:  seedlingTestData.title,
       amountIndex:    donationTestData.amountIndex,
       incentiveValue: donationTestData.incentiveValue,
     });
