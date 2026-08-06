@@ -30,7 +30,9 @@ export class SeedlingSharePage extends BasePage {
   private verifyShareTargetShape(targetUrlRaw: string): void {
     const target = new URL(targetUrlRaw);
     expect(target.protocol).toBe('https:');
-    expect(target.hostname).toBe('qa.seedlingsocial.org');
+    const expectedBaseUrl = process.env.BASE_URL || 'https://qa.seedlingsocial.org';
+    const expectedHostname = new URL(expectedBaseUrl).hostname;
+    expect(target.hostname).toBe(expectedHostname);
     expect(target.pathname).toMatch(/^\/seedlingshareVideo\/[A-Za-z0-9+/]+=*$/);
     expect(target.searchParams.get('encode')).toBe('true');
   }
