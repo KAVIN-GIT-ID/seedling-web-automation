@@ -105,8 +105,6 @@ jobs:
         echo "" >> email-body.txt
         echo "(Note: It may take 1-2 minutes for the link to become active after the email is sent)." >> email-body.txt
         echo "" >> email-body.txt
-        echo "--- TEST EXECUTION SUMMARY ---" >> email-body.txt
-        tail -n 100 test-output.log >> email-body.txt
 
     - name: Send email report
       if: ${{ !cancelled() }}
