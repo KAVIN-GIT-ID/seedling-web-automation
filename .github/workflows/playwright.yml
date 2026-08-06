@@ -79,35 +79,17 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
-    - name: Deploy report to GitHub Pages
+    - name: Deploy report to Surge
       if: ${{ !cancelled() }}
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        personal_token: ${{ secrets.REPORTS_TOKEN }}
-        external_repository: Kavin-uit/playwright-reports
-        publish_dir: ./playwright-report
-        destination_dir: ${{ github.run_id }}
-
-    - name: Wait for GitHub Pages Deployment
-      if: ${{ !cancelled() }}
-      run: |
-        REPORT_URL="https://Kavin-uit.github.io/playwright-reports/${{ github.run_id }}/"
-        echo "Waiting for $REPORT_URL to be live..."
-        for i in {1..60}; do
-          STATUS_CODE=$(curl -L -o /dev/null -s -w "%{http_code}\n" "$REPORT_URL")
-          if [ "$STATUS_CODE" -eq 200 ]; then
-            echo "Report is live!"
-            exit 0
-          fi
-          echo "Still waiting (Status: $STATUS_CODE). Retrying in 10s..."
-          sleep 10
-        done
-        echo "Warning: Timeout waiting for report to be live."
+      env:
+        SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+      run: npx surge ./playwright-report ${{ github.run_id }}-seedling.surge.sh
         
     - name: Prepare Email Body
       if: ${{ !cancelled() }}
       run: |
-        REPORT_URL="https://Kavin-uit.github.io/playwright-reports/${{ github.run_id }}/"
+        REPORT_URL="https://${{ github.run_id }}-seedling.surge.sh"
         
         echo "Playwright test run finished." > email-body.txt
         echo "Status: ${{ job.status }}" >> email-body.txt
