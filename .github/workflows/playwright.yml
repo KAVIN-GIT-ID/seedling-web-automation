@@ -87,7 +87,6 @@ jobs:
         external_repository: Kavin-uit/playwright-reports
         publish_dir: ./playwright-report
         destination_dir: ${{ github.run_id }}
-        keep_files: true
 
     - name: Wait for GitHub Pages Deployment
       if: ${{ !cancelled() }}
