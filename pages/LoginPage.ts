@@ -43,6 +43,11 @@ export class LoginPage extends BasePage {
     await this.fillCredentials(email, password);
     await this.submit();
     await this.waitForPageLoad();
+
+    if (await this.errorMessage.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const text = await this.errorMessage.textContent();
+      throw new Error(`Login failed with UI error: ${text?.trim()}`);
+    }
   }
 
   async getErrorMessage(): Promise<string | null> {
