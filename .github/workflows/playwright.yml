@@ -86,6 +86,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./playwright-report
         destination_dir: ${{ github.run_id }}
+        keep_files: true
         
     - name: Prepare Email Body
       if: ${{ !cancelled() }}
