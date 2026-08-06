@@ -1,4 +1,4 @@
-.env.*
+# Environment files are committed to repo as requested
 # Playwright
 node_modules/
 /test-results/

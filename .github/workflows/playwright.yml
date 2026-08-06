@@ -11,17 +11,18 @@ on:
           - prod
         default: 'qa'
       component:
-        description: 'Component to test'
+        description: 'Test file to run'
         type: choice
         required: true
         options:
           - all
-          - prod-suite
-          - login
-          - search
-          - share
-          - donation
-          - create-seedling
+          - tests/auth/login.spec.ts
+          - tests/auth/dashboard/dashboard.spec.ts
+          - tests/auth/dashboard/donation.spec.ts
+          - tests/auth/seedling/create-seedling.spec.ts
+          - tests/auth/seedling/share-all-channels.spec.ts
+          - tests/unauth/seedling/search-charity.spec.ts
+          - tests/unauth/seedling/share-all-channels.spec.ts
         default: 'all'
 jobs:
   test:
@@ -56,28 +57,14 @@ jobs:
         CMD="npm run test:${{ github.event.inputs.environment }}"
         COMP="${{ github.event.inputs.component }}"
         
-        if [ "$COMP" = "prod-suite" ]; then
-          CMD="$CMD -- --grep @prod"
-        elif [ "$COMP" = "login" ]; then
-          CMD="$CMD -- tests/auth/login.spec.ts"
-        elif [ "$COMP" = "search" ]; then
-          CMD="$CMD -- tests/unauth/seedling/search-charity.spec.ts"
-        elif [ "$COMP" = "share" ]; then
-          CMD="$CMD -- **/share-all-channels.spec.ts"
-        elif [ "$COMP" = "donation" ]; then
-          CMD="$CMD -- tests/auth/dashboard/donation.spec.ts"
-        elif [ "$COMP" = "create-seedling" ]; then
-          CMD="$CMD -- tests/auth/seedling/create-seedling.spec.ts"
+        if [ "$COMP" != "all" ]; then
+          CMD="$CMD -- $COMP"
         fi
         
         echo "TEST_COMMAND=$CMD" >> $GITHUB_ENV
 
     - name: Run Playwright tests
       run: ${{ env.TEST_COMMAND }}
-      env:
-        BASE_URL: ${{ github.event.inputs.environment == 'prod' && secrets.PROD_BASE_URL || secrets.QA_BASE_URL }}
-        TEST_USER_EMAIL: ${{ github.event.inputs.environment == 'prod' && secrets.PROD_TEST_USER_EMAIL || secrets.QA_TEST_USER_EMAIL }}
-        TEST_USER_PASS: ${{ github.event.inputs.environment == 'prod' && secrets.PROD_TEST_USER_PASS || secrets.QA_TEST_USER_PASS }}
         
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
