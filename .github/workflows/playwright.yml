@@ -64,7 +64,12 @@ jobs:
         echo "TEST_COMMAND=$CMD" >> $GITHUB_ENV
 
     - name: Run Playwright tests
-      run: ${{ env.TEST_COMMAND }}
+      run: |
+        ${{ env.TEST_COMMAND }} 2>&1 | tee test-output.log
+
+    - name: Zip Playwright Report
+      if: ${{ !cancelled() }}
+      run: zip -r playwright-report.zip playwright-report/
         
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
@@ -72,6 +77,22 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+        
+    - name: Prepare Email Body
+      if: ${{ !cancelled() }}
+      run: |
+        echo "Playwright test run finished." > email-body.txt
+        echo "Status: ${{ job.status }}" >> email-body.txt
+        echo "Environment: ${{ github.event.inputs.environment }}" >> email-body.txt
+        echo "Component: ${{ github.event.inputs.component }}" >> email-body.txt
+        echo "Branch: ${{ github.ref_name }}" >> email-body.txt
+        echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
+        echo "" >> email-body.txt
+        echo "Attached is playwright-report.zip. Download it, extract it, and double-click index.html to view the interactive report with videos and screenshots!" >> email-body.txt
+        echo "" >> email-body.txt
+        echo "--- TEST EXECUTION SUMMARY ---" >> email-body.txt
+        tail -n 100 test-output.log >> email-body.txt
+
     - name: Send email report
       if: ${{ !cancelled() }}
       uses: dawidd6/action-send-mail@v3
@@ -83,15 +104,5 @@ jobs:
         subject: "Playwright Run ${{ job.status }} - Env: ${{ github.event.inputs.environment }} - Component: ${{ github.event.inputs.component }}"
         to: ${{ secrets.TL_EMAIL }}
         from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
-        body: |
-          Playwright test run finished.
-          
-          Status: ${{ job.status }}
-          Environment: ${{ github.event.inputs.environment }}
-          Component: ${{ github.event.inputs.component }}
-          Branch: ${{ github.ref_name }}
-          Triggered by: ${{ github.actor }}
-          Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
-          The full HTML report is attached in the GitHub Actions artifacts (link above, under "Artifacts").
-        attachments: playwright-report/index.html
+        body: file://email-body.txt
+        attachments: playwright-report.zip
