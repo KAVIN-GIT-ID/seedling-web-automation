@@ -102,8 +102,8 @@ jobs:
         # Extract failures if the job failed
         if [ "${{ job.status }}" != "success" ]; then
           echo "=== FAILURES & MISSING CONTENT ===" >> email-body.txt
-          # Grab all Error and Locator lines, and strip any ANSI color codes for the email text
-          grep -E "Error:|Locator:|Expected:|Received:" test-output.log | sed -e 's/\x1b\[[0-9;]*m//g' | head -n 30 >> email-body.txt || echo "See HTML report for details." >> email-body.txt
+          # Grab all Error and Locator lines, strip ANSI color codes, and avoid SIGPIPE by not using head in a pipefail environment
+          grep -m 30 -E "Error:|Locator:|Expected:|Received:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' >> email-body.txt || echo "See HTML report for details." >> email-body.txt
           echo "==================================" >> email-body.txt
           echo "" >> email-body.txt
         fi
