@@ -70,6 +70,7 @@ jobs:
     - name: Run Playwright tests
       run: |
         ${{ env.TEST_COMMAND }} 2>&1 | tee test-output.log
+        exit ${PIPESTATUS[0]}
 
 
     - uses: actions/upload-artifact@v4
