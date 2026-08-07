@@ -49,9 +49,9 @@ export class SearchPage extends BasePage {
     addressLine2: string;
     einSnippet: string;
   }): Promise<void> {
-    await expect(this.page.getByText(details.descriptionSnippet)).toBeVisible();
-    await expect(this.page.getByText(details.addressLine1)).toBeVisible();
-    await expect(this.page.getByText(details.addressLine2)).toBeVisible();
-    await expect(this.page.getByText(details.einSnippet)).toBeVisible();
+    await expect.soft(this.page.getByText(details.descriptionSnippet)).toBeVisible();
+    await expect.soft(this.page.getByText(details.addressLine1)).toBeVisible();
+    await expect.soft(this.page.getByText(details.addressLine2)).toBeVisible();
+    await expect.soft(this.page.getByText(details.einSnippet)).toBeVisible();
   }
 }
