@@ -27,4 +27,13 @@ export const charitySearchCases: CharitySearchCase[] = [
     einSnippet: 'EIN: 95-',
     useCharitiesTab: false,
   },
+  {
+    query: 'Hope Women Empowerment Organization Inc.',
+    headingName: 'Hope Women Empowerment Organization Inc.',
+    descriptionSnippet: '',
+    addressLine1: '239 S HILLWARD AVE',
+    addressLine2: 'WEST COVINA, CA, USA, 91791-1919',
+    einSnippet: 'EIN: 92-1919356',
+    useCharitiesTab: false,
+  },
 ];
