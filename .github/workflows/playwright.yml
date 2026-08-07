@@ -102,10 +102,25 @@ jobs:
         
         # Extract failures if the job failed
         if [ "${{ job.status }}" != "success" ]; then
-          echo "=== FAILURES & MISSING CONTENT ===" >> email-body.txt
-          # Grab all Error and Locator lines, strip ANSI color codes, and avoid SIGPIPE by not using head in a pipefail environment
-          grep -m 30 -E "Error:|Locator:|Expected:|Received:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' >> email-body.txt || echo "See HTML report for details." >> email-body.txt
-          echo "==================================" >> email-body.txt
+          echo "=== APPLICATION ISSUES (MISSING CONTENT) ===" >> email-body.txt
+          
+          # Parse locators to create a clean, manager-friendly report
+          MISSING_FOUND=false
+          grep "Locator:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' | sed 's/^[[:space:]]*Locator:[[:space:]]*//' | sort | uniq | while read loc; do
+            MISSING_FOUND=true
+            if echo "$loc" | grep -q "getByText"; then
+              missing_val=$(echo "$loc" | sed -E "s/.*getByText\(['\"]([^'\"]+)['\"]\).*/\1/")
+              echo "❌ Missing text on page: \"$missing_val\"" >> email-body.txt
+            else
+              echo "❌ Missing UI element: $loc" >> email-body.txt
+            fi
+          done
+          
+          if [ "$MISSING_FOUND" = false ]; then
+            echo "❌ Tests failed. See HTML report for detailed breakdown." >> email-body.txt
+          fi
+          
+          echo "=============================================" >> email-body.txt
           echo "" >> email-body.txt
         fi
 
