@@ -98,6 +98,16 @@ jobs:
         echo "Branch: ${{ github.ref_name }}" >> email-body.txt
         echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
         echo "" >> email-body.txt
+        
+        # Extract failures if the job failed
+        if [ "${{ job.status }}" != "success" ]; then
+          echo "=== FAILURES & MISSING CONTENT ===" >> email-body.txt
+          # Grab all Error and Locator lines, and strip any ANSI color codes for the email text
+          grep -E "Error:|Locator:|Expected:|Received:" test-output.log | sed -e 's/\x1b\[[0-9;]*m//g' | head -n 30 >> email-body.txt || echo "See HTML report for details." >> email-body.txt
+          echo "==================================" >> email-body.txt
+          echo "" >> email-body.txt
+        fi
+
         echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
         echo "$REPORT_URL" >> email-body.txt
         echo "" >> email-body.txt
