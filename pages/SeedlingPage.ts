@@ -137,20 +137,33 @@ export class SeedlingPage extends BasePage {
     await this.clickNext(() => this.page.getByRole('textbox', { name: 'Goal Amount Goal Amount' }));
   }
 
-  async fillGoals(data: { seedlingGoal: string; campaignGoal: string }) {
-    const goalField = () => this.page.getByRole('textbox', { name: 'Goal Amount Goal Amount' });
-    await goalField().waitFor({ state: 'visible', timeout: 15000 });
-    await this.safeFill(goalField, data.seedlingGoal);
+  async fillGoals(data: {
+    seedlingGoal?: string;
+    endSeedling?: boolean;
+    campaignGoal?: string;
+    endCampaign?: boolean;
+  }) {
+    if (data.seedlingGoal) {
+      const goalField = () => this.page.getByRole('textbox', { name: 'Goal Amount Goal Amount' });
+      await goalField().waitFor({ state: 'visible', timeout: 15000 });
+      await this.safeFill(goalField, data.seedlingGoal);
+    }
 
-    const endSeedlingCheckbox = () => this.page.getByRole('checkbox', { name: /End Seedling if/ });
-    await this.safeClick(endSeedlingCheckbox, async () => await endSeedlingCheckbox().isChecked());
+    if (data.endSeedling) {
+      const endSeedlingCheckbox = () => this.page.getByRole('checkbox', { name: /End Seedling if/ });
+      await this.safeClick(endSeedlingCheckbox, async () => await endSeedlingCheckbox().isChecked());
+    }
 
-    const campaignGoalField = () => this.page.getByPlaceholder(' ').nth(1);
-    await campaignGoalField().waitFor({ state: 'visible', timeout: 30000 });
-    await this.safeFill(campaignGoalField, data.campaignGoal);
+    if (data.campaignGoal) {
+      const campaignGoalField = () => this.page.getByPlaceholder(' ').nth(1);
+      await campaignGoalField().waitFor({ state: 'visible', timeout: 30000 });
+      await this.safeFill(campaignGoalField, data.campaignGoal);
+    }
 
-    const endCampaignCheckbox = () => this.page.getByRole('checkbox', { name: /End Campaign if/ });
-    await this.safeClick(endCampaignCheckbox, async () => await endCampaignCheckbox().isChecked());
+    if (data.endCampaign) {
+      const endCampaignCheckbox = () => this.page.getByRole('checkbox', { name: /End Campaign if/ });
+      await this.safeClick(endCampaignCheckbox, async () => await endCampaignCheckbox().isChecked());
+    }
 
     await this.clickNext(() => this.page.getByRole('checkbox', { name: /Add a giving incentive to/ }).first());
   }
@@ -256,8 +269,8 @@ export class SeedlingPage extends BasePage {
     coSponsorName: string;
     campaignTitle: string;
     campaignDescription: string;
-    seedlingGoal: string;
-    campaignGoal: string;
+    seedlingGoal?: string;
+    campaignGoal?: string;
     tier1Description: string;
     tier2Description: string;
     tier3Description: string;
@@ -273,7 +286,9 @@ export class SeedlingPage extends BasePage {
     await expect(this.page.getByText(data.coSponsorName)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.campaignTitle)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.campaignDescription)).toBeVisible({ timeout: 30000 });
-    await expect(this.page.getByText(data.seedlingGoal).first()).toBeVisible({ timeout: 30000 });
+    if (data.seedlingGoal) {
+      await expect(this.page.getByText(data.seedlingGoal).first()).toBeVisible({ timeout: 30000 });
+    }
     await expect(this.page.getByText(data.tier1Description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.tier2Description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.tier3Description)).toBeVisible({ timeout: 30000 });
@@ -291,8 +306,8 @@ export class SeedlingPage extends BasePage {
   coSponsorName: string;
   campaignTitle: string;
   campaignDescription: string;
-  seedlingGoal: string;
-  campaignGoal: string;
+  seedlingGoal?: string;
+  campaignGoal?: string;
   tier1Description: string;
   tier2Description: string;
   tier3Description: string;

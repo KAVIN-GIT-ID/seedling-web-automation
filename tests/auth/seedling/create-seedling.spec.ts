@@ -34,7 +34,147 @@ test.describe('Create Seedling - Full Flow', () => {
     // Step 4 — Goals
     await seedlingPage.fillGoals({
       seedlingGoal: seedlingTestData.seedlingGoal,
+      endSeedling:  true,
       campaignGoal: seedlingTestData.campaignGoal,
+      endCampaign:  true,
+    });
+
+    // Step 5 — All incentives
+    await seedlingPage.fillIncentives({
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+    });
+
+    // Step 6 — Challenge match
+    await seedlingPage.fillChallengeMatch(seedlingTestData.matchingAmount);
+
+    // Step 7 — Video upload
+    await seedlingPage.uploadVideo(seedlingTestData.mediaFile);
+
+    // Step 8 — Verify review page then submit
+    await seedlingPage.submitSeedling({
+      charityLabel:              seedlingTestData.charityLabel,
+      title:                     seedlingTestData.title,
+      description:               seedlingTestData.description,
+      coSponsorName:             seedlingTestData.coSponsorName,
+      campaignTitle:             seedlingTestData.campaignTitle,
+      campaignDescription:       seedlingTestData.campaignDescription,
+      seedlingGoal:              seedlingTestData.seedlingGoal,
+      campaignGoal:              seedlingTestData.campaignGoal,
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+      matchingAmount:            seedlingTestData.matchingAmount,
+    });
+  });
+
+  test('creates seedling without goal amount', async ({ page }) => {
+    test.setTimeout(10 * 60 * 1000);
+    const seedlingPage = new SeedlingPage(page);
+
+    await page.goto('/');
+
+    // Step 1 — Open form
+    await seedlingPage.openCreateSeedling();
+
+    // Step 2 — Select charity
+    await seedlingPage.selectCharity(
+      seedlingTestData.charitySearch,
+      seedlingTestData.charityLabel
+    );
+
+    // Step 3 — Seedling details + co-sponsor + campaign
+    await seedlingPage.fillSeedlingDetails({
+      title:               `${seedlingTestData.title} - No Goal`,
+      description:         seedlingTestData.description,
+      coSponsorSearch:     seedlingTestData.coSponsorSearch,
+      coSponsorName:       seedlingTestData.coSponsorName,
+      campaignTitle:       `${seedlingTestData.campaignTitle} - No Goal`,
+      campaignDescription: seedlingTestData.campaignDescription,
+    });
+
+    // Step 4 — Goals (Left empty without checking end goal checkboxes)
+    await seedlingPage.fillGoals({
+      endSeedling: false,
+      endCampaign: false,
+    });
+
+    // Step 5 — All incentives
+    await seedlingPage.fillIncentives({
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+    });
+
+    // Step 6 — Challenge match
+    await seedlingPage.fillChallengeMatch(seedlingTestData.matchingAmount);
+
+    // Step 7 — Video upload
+    await seedlingPage.uploadVideo(seedlingTestData.mediaFile);
+
+    // Step 8 — Submit without goal amount in review verification
+    await seedlingPage.submitSeedling({
+      charityLabel:              seedlingTestData.charityLabel,
+      title:                     `${seedlingTestData.title} - No Goal`,
+      description:               seedlingTestData.description,
+      coSponsorName:             seedlingTestData.coSponsorName,
+      campaignTitle:             `${seedlingTestData.campaignTitle} - No Goal`,
+      campaignDescription:       seedlingTestData.campaignDescription,
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+      matchingAmount:            seedlingTestData.matchingAmount,
+    });
+  });
+
+  test('creates seedling without ticking end goal checkboxes', async ({ page }) => {
+    test.setTimeout(10 * 60 * 1000);
+    const seedlingPage = new SeedlingPage(page);
+
+    await page.goto('/');
+
+    // Step 1 — Open form
+    await seedlingPage.openCreateSeedling();
+
+    // Step 2 — Select charity
+    await seedlingPage.selectCharity(
+      seedlingTestData.charitySearch,
+      seedlingTestData.charityLabel
+    );
+
+    // Step 3 — Seedling details + co-sponsor + campaign
+    await seedlingPage.fillSeedlingDetails({
+      title:               `${seedlingTestData.title} - No End Checkbox`,
+      description:         seedlingTestData.description,
+      coSponsorSearch:     seedlingTestData.coSponsorSearch,
+      coSponsorName:       seedlingTestData.coSponsorName,
+      campaignTitle:       `${seedlingTestData.campaignTitle} - No End Checkbox`,
+      campaignDescription: seedlingTestData.campaignDescription,
+    });
+
+    // Step 4 — Goals (Goals provided, end goal checkboxes UNTICKED)
+    await seedlingPage.fillGoals({
+      seedlingGoal: seedlingTestData.seedlingGoal,
+      endSeedling:  false,
+      campaignGoal: seedlingTestData.campaignGoal,
+      endCampaign:  false,
     });
 
     // Step 5 — All incentives
@@ -55,25 +195,23 @@ test.describe('Create Seedling - Full Flow', () => {
     await seedlingPage.uploadVideo(seedlingTestData.mediaFile);
 
     // Step 8 — Submit
-  // Step 8 — Verify review page then submit
-await seedlingPage.submitSeedling({
-  charityLabel:              seedlingTestData.charityLabel,
-  title:                     seedlingTestData.title,
-  description:               seedlingTestData.description,
-  coSponsorName:             seedlingTestData.coSponsorName,
-  campaignTitle:             seedlingTestData.campaignTitle,
-  campaignDescription:       seedlingTestData.campaignDescription,
-  seedlingGoal:              seedlingTestData.seedlingGoal,
-  campaignGoal:              seedlingTestData.campaignGoal,
-  tier1Description:          seedlingTestData.tier1Description,
-  tier2Description:          seedlingTestData.tier2Description,
-  tier3Description:          seedlingTestData.tier3Description,
-  tier4Description:          seedlingTestData.tier4Description,
-  highestDonorDescription:   seedlingTestData.highestDonorDescription,
-  groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
-  campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
-  matchingAmount:            seedlingTestData.matchingAmount,
-});
-    
+    await seedlingPage.submitSeedling({
+      charityLabel:              seedlingTestData.charityLabel,
+      title:                     `${seedlingTestData.title} - No End Checkbox`,
+      description:               seedlingTestData.description,
+      coSponsorName:             seedlingTestData.coSponsorName,
+      campaignTitle:             `${seedlingTestData.campaignTitle} - No End Checkbox`,
+      campaignDescription:       seedlingTestData.campaignDescription,
+      seedlingGoal:              seedlingTestData.seedlingGoal,
+      campaignGoal:              seedlingTestData.campaignGoal,
+      tier1Description:          seedlingTestData.tier1Description,
+      tier2Description:          seedlingTestData.tier2Description,
+      tier3Description:          seedlingTestData.tier3Description,
+      tier4Description:          seedlingTestData.tier4Description,
+      highestDonorDescription:   seedlingTestData.highestDonorDescription,
+      groupIncentiveDescription: seedlingTestData.groupIncentiveDescription,
+      campaignGroupDescription:  seedlingTestData.campaignGroupDescription,
+      matchingAmount:            seedlingTestData.matchingAmount,
+    });
   });
 });
