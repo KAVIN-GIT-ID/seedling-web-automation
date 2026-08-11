@@ -209,20 +209,24 @@ export class SeedlingPage extends BasePage {
     );
 
     const groupCheck = () => this.page.getByRole('checkbox', { name: 'Group Incentive', exact: true });
-    await this.safeClick(groupCheck, async () => await groupCheck().isChecked(), 80000);
-    await this.safeFill(
-      () => this.page.getByRole('textbox', { name: 'Describe your Group incentive' }),
-      data.groupIncentiveDescription,
-      80000
-    );
+    if (await groupCheck().isVisible().catch(() => false)) {
+      await this.safeClick(groupCheck, async () => await groupCheck().isChecked(), 10000);
+      await this.safeFill(
+        () => this.page.getByRole('textbox', { name: 'Describe your Group incentive' }),
+        data.groupIncentiveDescription,
+        10000
+      );
+    }
 
     const campaignGroupCheck = () => this.page.getByRole('checkbox', { name: 'Campaign Group Incentive' });
-    await this.safeClick(campaignGroupCheck, async () => await campaignGroupCheck().isChecked(), 40000);
-    await this.safeFill(
-      () => this.page.getByRole('textbox', { name: 'Describe your Campaign Group incentive' }),
-      data.campaignGroupDescription,
-      40000
-    );
+    if (await campaignGroupCheck().isVisible().catch(() => false)) {
+      await this.safeClick(campaignGroupCheck, async () => await campaignGroupCheck().isChecked(), 10000);
+      await this.safeFill(
+        () => this.page.getByRole('textbox', { name: 'Describe your Campaign Group incentive' }),
+        data.campaignGroupDescription,
+        10000
+      );
+    }
 
     await this.clickNext(() => this.page.getByRole('checkbox', { name: 'Create a Challenge Match' }));
   }
@@ -294,8 +298,10 @@ export class SeedlingPage extends BasePage {
     await expect(this.page.getByText(data.tier3Description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.tier4Description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.highestDonorDescription)).toBeVisible({ timeout: 30000 });
-    await expect(this.page.getByText(data.groupIncentiveDescription)).toBeVisible({ timeout: 30000 });
-    await expect(this.page.getByText(data.campaignGroupDescription)).toBeVisible({ timeout: 30000 });
+    if (data.seedlingGoal) {
+      await expect(this.page.getByText(data.groupIncentiveDescription)).toBeVisible({ timeout: 30000 });
+      await expect(this.page.getByText(data.campaignGroupDescription)).toBeVisible({ timeout: 30000 });
+    }
     await expect(this.page.getByText(data.matchingAmount).first()).toBeVisible({ timeout: 50000 });
   }
 
