@@ -241,15 +241,16 @@ export class SeedlingPage extends BasePage {
     await this.clickNext(() => this.page.getByRole('checkbox', { name: 'Create a Challenge Match' }));
   }
 
-  async fillChallengeMatch(matchingAmount: string) {
-    const matchCheck = () => this.page.getByRole('checkbox', { name: 'Create a Challenge Match' });
-    await matchCheck().waitFor({ state: 'visible', timeout: 55000 });
-    await this.safeClick(matchCheck, async () => await matchCheck().isChecked());
+  async fillChallengeMatch(matchingAmount?: string) {
+    if (matchingAmount) {
+      const matchCheck = () => this.page.getByRole('checkbox', { name: 'Create a Challenge Match' });
+      await matchCheck().waitFor({ state: 'visible', timeout: 55000 });
+      await this.safeClick(matchCheck, async () => await matchCheck().isChecked());
 
-    const amountField = () => this.page.getByRole('textbox', { name: 'Matching Amount' });
-    await amountField().waitFor({ state: 'visible', timeout: 50000 });
-    await this.safeFill(amountField, matchingAmount);
-
+      const amountField = () => this.page.getByRole('textbox', { name: 'Matching Amount' });
+      await amountField().waitFor({ state: 'visible', timeout: 50000 });
+      await this.safeFill(amountField, matchingAmount);
+    }
     await this.clickNext(() => this.page.getByRole('button', { name: 'Or Choose A File' }));
   }
 
@@ -292,7 +293,7 @@ export class SeedlingPage extends BasePage {
     highestDonorDescription: string;
     groupIncentiveDescription?: string;
     campaignGroupDescription?: string;
-    matchingAmount: string;
+    matchingAmount?: string;
   }) {
     await expect(this.page.getByText(data.title)).toBeVisible({ timeout: 45000 });
     await expect(this.page.getByText(data.charityName)).toBeVisible({ timeout: 15000 });
@@ -320,7 +321,9 @@ export class SeedlingPage extends BasePage {
         await expect(this.page.getByText(data.campaignGroupDescription)).toBeVisible({ timeout: 30000 });
       }
     }
-    await expect(this.page.getByText(data.matchingAmount).first()).toBeVisible({ timeout: 50000 });
+    if (data.matchingAmount) {
+      await expect(this.page.getByText(data.matchingAmount).first()).toBeVisible({ timeout: 50000 });
+    }
   }
 
   async submitSeedling(data: {
@@ -339,7 +342,8 @@ export class SeedlingPage extends BasePage {
     highestDonorDescription: string;
     groupIncentiveDescription?: string;
     campaignGroupDescription?: string;
-    matchingAmount: string;
+    matchingAmount?: string;
+    skipPaymentFlow?: boolean;
   }) {
     await this.verifyReviewPage(data);
 
@@ -348,19 +352,23 @@ export class SeedlingPage extends BasePage {
     await expect(confirmBtn).toBeEnabled({ timeout: 300_000 });
     await this.waitEnabledThenClick(confirmBtn);
 
-    const authorizeBtn = this.page.getByRole('button', { name: /Authorize \$/ });
-    await authorizeBtn.waitFor({ state: 'visible', timeout: 45000 });
-    await authorizeBtn.click();
-    const authenticatingBtn = this.page.getByRole('button', { name: 'Authenticating' });
-    if (await authenticatingBtn.isVisible().catch(() => false)) {
-      await authenticatingBtn.waitFor({ state: 'hidden', timeout: 90000 });
+    if (!data.skipPaymentFlow) {
+      const authorizeBtn = this.page.getByRole('button', { name: /Authorize \$/ });
+      await authorizeBtn.waitFor({ state: 'visible', timeout: 45000 });
+      await authorizeBtn.click();
+      const authenticatingBtn = this.page.getByRole('button', { name: 'Authenticating' });
+      if (await authenticatingBtn.isVisible().catch(() => false)) {
+        await authenticatingBtn.waitFor({ state: 'hidden', timeout: 90000 });
+      }
+
+      const okBtn = this.page.getByRole('button', { name: 'OK' });
+      await expect(okBtn).toBeVisible({ timeout: 60000 });
+      await okBtn.click();
+      await okBtn.waitFor({ state: 'hidden', timeout: 15000 });
+    } else {
+      // For flows without payment, wait for the final success screen to ensure submission finishes
+      const successHeading = this.page.getByRole('heading', { name: 'Your Seedling will be live soon!' });
+      await expect(successHeading).toBeVisible({ timeout: 60000 });
     }
-
-    const okBtn = this.page.getByRole('button', { name: 'OK' });
-    await expect(confirmBtn).toBeEnabled({ timeout: 60000 });
-
-    await okBtn.click();
-
-    await okBtn.waitFor({ state: 'hidden', timeout: 15000 });
   }
 }

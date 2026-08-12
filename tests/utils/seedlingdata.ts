@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 export const seedlingTestData = {
-  charitySearch: 'amazon',
+  charitySearch: 'Amazon Watch',
   charityLabel:  'Amazon WatchOAKLAND, CA',
   charityName:   'Amazon Watch',
 

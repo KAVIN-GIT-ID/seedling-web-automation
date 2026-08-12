@@ -4,7 +4,20 @@ import { SeedlingPage } from '../../../pages/SeedlingPage';
 
 // ✅ storageState auto-loaded — already logged in, no login code needed
 
-const testCases = [
+type TestCase = {
+  name: string;
+  title: string;
+  campaignTitle?: string;
+  seedlingGoal?: string;
+  campaignGoal?: string;
+  endSeedling: boolean;
+  endCampaign: boolean;
+  campaignGroupDescription?: string;
+  skipChallengeMatch?: boolean;
+  skipPaymentFlow?: boolean;
+};
+
+const testCases: TestCase[] = [
   {
     name: 'creates a complete seedling with all steps',
     title: 'Seedling Full Flow',
@@ -44,6 +57,18 @@ const testCases = [
     endSeedling: true,
     endCampaign: false,
     campaignGroupDescription: undefined,
+  },
+  {
+    name: 'creates seedling without challenge match and skips payment',
+    title: 'Seedling Without Challenge Match',
+    campaignTitle: 'Campaign Without Challenge Match',
+    seedlingGoal: seedlingTestData.seedlingGoal,
+    campaignGoal: seedlingTestData.campaignGoal,
+    endSeedling: true,
+    endCampaign: true,
+    campaignGroupDescription: seedlingTestData.campaignGroupDescription,
+    skipChallengeMatch: true,
+    skipPaymentFlow: true,
   },
 ];
 
@@ -94,7 +119,7 @@ test.describe('Create Seedling - Full Flow', () => {
       });
 
       // Step 6 — Challenge match
-      await seedlingPage.fillChallengeMatch(seedlingTestData.matchingAmount);
+      await seedlingPage.fillChallengeMatch(tc.skipChallengeMatch ? undefined : seedlingTestData.matchingAmount);
 
       // Step 7 — Video upload
       await seedlingPage.uploadVideo(seedlingTestData.mediaFile);
@@ -116,7 +141,8 @@ test.describe('Create Seedling - Full Flow', () => {
         highestDonorDescription:   seedlingTestData.highestDonorDescription,
         groupIncentiveDescription: tc.endSeedling ? seedlingTestData.groupIncentiveDescription : undefined,
         campaignGroupDescription:  tc.campaignGroupDescription,
-        matchingAmount:            seedlingTestData.matchingAmount,
+        matchingAmount:            tc.skipChallengeMatch ? undefined : seedlingTestData.matchingAmount,
+        skipPaymentFlow:           tc.skipPaymentFlow,
       });
     });
   }
