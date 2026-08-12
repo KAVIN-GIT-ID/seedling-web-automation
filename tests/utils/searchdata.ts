@@ -36,4 +36,13 @@ export const charitySearchCases: CharitySearchCase[] = [
     einSnippet: 'EIN: 92-1919356',
     useCharitiesTab: false,
   },
+  {
+    query: 'Love Always Sanctuary Inc.',
+    headingName: 'Love Always Sanctuary Inc.',
+    descriptionSnippet: '',
+    addressLine1: '9841 LA TUNA CANYON RD',
+    addressLine2: 'SUN VALLEY, CA, USA, 91352-2254',
+    einSnippet: 'EIN: 82-2871439',
+    useCharitiesTab: false,
+  },
 ];
