@@ -3,6 +3,7 @@ import * as path from 'path';
 export const seedlingTestData = {
   charitySearch: 'amazon',
   charityLabel:  'Amazon WatchOAKLAND, CA',
+  charityName:   'Amazon Watch',
 
   title:               'The New Seedling',
   description:         'the new description',

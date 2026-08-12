@@ -38,10 +38,11 @@ export class SeedlingPage extends BasePage {
         await locator.scrollIntoViewIfNeeded();
         await locator.waitFor({ state: 'visible', timeout });
         await locator.click();
-        await locator.fill(value);
+        await locator.clear().catch(() => {});
+        await locator.pressSequentially(value, { delay: 50 });
         await expect(locator).toHaveValue(value, { timeout: 5000 });
         await locator.blur().catch(() => {});
-        await this.page.waitForTimeout(150);
+        await this.page.waitForTimeout(300);
         await expect(locator).toHaveValue(value, { timeout: 5000 }); // re-check after settle, catches the reset-to-empty race
         return;
       } catch (err) {
@@ -71,6 +72,10 @@ export class SeedlingPage extends BasePage {
   }
 
   private async clickNext(nextStepMarker?: () => Locator) {
+    // Force blur on any active inputs to trigger form validation
+    await this.page.mouse.click(0, 0).catch(() => {});
+    await this.page.waitForTimeout(500);
+
     const nextBtn = () => this.page.getByRole('button', { name: 'Next' });
     await expect(nextBtn()).toBeEnabled({ timeout: 15000 });
     await this.safeClick(nextBtn);
@@ -110,8 +115,8 @@ export class SeedlingPage extends BasePage {
     description: string;
     coSponsorSearch: string;
     coSponsorName: string;
-    campaignTitle: string;
-    campaignDescription: string;
+    campaignTitle?: string;
+    campaignDescription?: string;
   }) {
     const titleField = () => this.page.getByRole('textbox', { name: 'Seedling Title*' });
     await titleField().waitFor({ state: 'visible', timeout: 15000 });
@@ -126,16 +131,20 @@ export class SeedlingPage extends BasePage {
     await sponsorResult().waitFor({ state: 'visible', timeout: 15000 });
     await this.safeClick(sponsorResult);
 
-    const campaignCheckbox = () => this.page.getByRole('checkbox', { name: 'Create a campaign' });
-    await this.safeClick(campaignCheckbox, async () => await campaignCheckbox().isChecked());
+    if (data.campaignTitle) {
+      const campaignCheckbox = () => this.page.getByRole('checkbox', { name: 'Create a campaign' });
+      await this.safeClick(campaignCheckbox, async () => await campaignCheckbox().isChecked());
 
-    const campaignTitleField = () => this.page.getByRole('textbox', { name: 'Campaign title' });
-    await campaignTitleField().waitFor({ state: 'visible', timeout: 30000 });
-    await this.safeFill(campaignTitleField, data.campaignTitle);
+      const campaignTitleField = () => this.page.getByRole('textbox', { name: 'Campaign title' });
+      await campaignTitleField().waitFor({ state: 'visible', timeout: 30000 });
+      await this.safeFill(campaignTitleField, data.campaignTitle);
 
-    await this.safeFill(() => this.page.getByRole('textbox', { name: 'Campaign description' }), data.campaignDescription);
+      if (data.campaignDescription) {
+        await this.safeFill(() => this.page.getByRole('textbox', { name: 'Campaign description' }), data.campaignDescription);
+      }
+    }
 
-    await this.clickNext(() => this.page.getByRole('textbox', { name: 'Goal Amount Goal Amount' }));
+    await this.clickNext(() => this.page.getByRole('textbox', { name: /Goal Amount/i }).first());
   }
 
   async fillGoals(data: {
@@ -145,7 +154,7 @@ export class SeedlingPage extends BasePage {
     endCampaign?: boolean;
   }) {
     if (data.seedlingGoal) {
-      const goalField = () => this.page.getByRole('textbox', { name: 'Goal Amount Goal Amount' });
+      const goalField = () => this.page.getByRole('textbox', { name: /Goal Amount/i }).first();
       await goalField().waitFor({ state: 'visible', timeout: 15000 });
       await this.safeFill(goalField, data.seedlingGoal);
     }
@@ -175,8 +184,8 @@ export class SeedlingPage extends BasePage {
     tier3Description: string;
     tier4Description: string;
     highestDonorDescription: string;
-    groupIncentiveDescription: string;
-    campaignGroupDescription: string;
+    groupIncentiveDescription?: string;
+    campaignGroupDescription?: string;
   }) {
     const incentiveCheckboxes = () => this.page.getByRole('checkbox', { name: /Add a giving incentive to/ });
     const categoryComboboxes = () => this.page.getByRole('combobox');
@@ -210,7 +219,7 @@ export class SeedlingPage extends BasePage {
     );
 
     const groupCheck = () => this.page.getByRole('checkbox', { name: 'Group Incentive', exact: true });
-    if (await groupCheck().isVisible().catch(() => false)) {
+    if (data.groupIncentiveDescription && await groupCheck().isVisible().catch(() => false)) {
       await this.safeClick(groupCheck, async () => await groupCheck().isChecked(), 10000);
       await this.safeFill(
         () => this.page.getByRole('textbox', { name: 'Describe your Group incentive' }),
@@ -220,7 +229,7 @@ export class SeedlingPage extends BasePage {
     }
 
     const campaignGroupCheck = () => this.page.getByRole('checkbox', { name: 'Campaign Group Incentive' });
-    if (await campaignGroupCheck().isVisible().catch(() => false)) {
+    if (data.campaignGroupDescription && await campaignGroupCheck().isVisible().catch(() => false)) {
       await this.safeClick(campaignGroupCheck, async () => await campaignGroupCheck().isChecked(), 10000);
       await this.safeFill(
         () => this.page.getByRole('textbox', { name: 'Describe your Campaign Group incentive' }),
@@ -268,12 +277,12 @@ export class SeedlingPage extends BasePage {
 }
 
   async verifyReviewPage(data: {
-    charityLabel: string;
+    charityName: string;
     title: string;
     description: string;
     coSponsorName: string;
-    campaignTitle: string;
-    campaignDescription: string;
+    campaignTitle?: string;
+    campaignDescription?: string;
     seedlingGoal?: string;
     campaignGoal?: string;
     tier1Description: string;
@@ -281,16 +290,20 @@ export class SeedlingPage extends BasePage {
     tier3Description: string;
     tier4Description: string;
     highestDonorDescription: string;
-    groupIncentiveDescription: string;
-    campaignGroupDescription: string;
+    groupIncentiveDescription?: string;
+    campaignGroupDescription?: string;
     matchingAmount: string;
   }) {
     await expect(this.page.getByText(data.title)).toBeVisible({ timeout: 45000 });
-    await expect(this.page.getByText('Amazon Watch')).toBeVisible({ timeout: 15000 });
+    await expect(this.page.getByText(data.charityName)).toBeVisible({ timeout: 15000 });
     await expect(this.page.getByText(data.description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.coSponsorName)).toBeVisible({ timeout: 30000 });
-    await expect(this.page.getByText(data.campaignTitle)).toBeVisible({ timeout: 30000 });
-    await expect(this.page.getByText(data.campaignDescription)).toBeVisible({ timeout: 30000 });
+    if (data.campaignTitle) {
+      await expect(this.page.getByText(data.campaignTitle)).toBeVisible({ timeout: 30000 });
+    }
+    if (data.campaignDescription) {
+      await expect(this.page.getByText(data.campaignDescription)).toBeVisible({ timeout: 30000 });
+    }
     if (data.seedlingGoal) {
       await expect(this.page.getByText(data.seedlingGoal).first()).toBeVisible({ timeout: 30000 });
     }
@@ -300,50 +313,54 @@ export class SeedlingPage extends BasePage {
     await expect(this.page.getByText(data.tier4Description)).toBeVisible({ timeout: 30000 });
     await expect(this.page.getByText(data.highestDonorDescription)).toBeVisible({ timeout: 30000 });
     if (data.seedlingGoal) {
-      await expect(this.page.getByText(data.groupIncentiveDescription)).toBeVisible({ timeout: 30000 });
-      await expect(this.page.getByText(data.campaignGroupDescription)).toBeVisible({ timeout: 30000 });
+      if (data.groupIncentiveDescription) {
+        await expect(this.page.getByText(data.groupIncentiveDescription)).toBeVisible({ timeout: 30000 });
+      }
+      if (data.campaignGroupDescription) {
+        await expect(this.page.getByText(data.campaignGroupDescription)).toBeVisible({ timeout: 30000 });
+      }
     }
     await expect(this.page.getByText(data.matchingAmount).first()).toBeVisible({ timeout: 50000 });
   }
 
   async submitSeedling(data: {
-  charityLabel: string;
-  title: string;
-  description: string;
-  coSponsorName: string;
-  campaignTitle: string;
-  campaignDescription: string;
-  seedlingGoal?: string;
-  campaignGoal?: string;
-  tier1Description: string;
-  tier2Description: string;
-  tier3Description: string;
-  tier4Description: string;
-  highestDonorDescription: string;
-  groupIncentiveDescription: string;
-  campaignGroupDescription: string;
-  matchingAmount: string;
-}) {
+    charityName: string;
+    title: string;
+    description: string;
+    coSponsorName: string;
+    campaignTitle?: string;
+    campaignDescription?: string;
+    seedlingGoal?: string;
+    campaignGoal?: string;
+    tier1Description: string;
+    tier2Description: string;
+    tier3Description: string;
+    tier4Description: string;
+    highestDonorDescription: string;
+    groupIncentiveDescription?: string;
+    campaignGroupDescription?: string;
+    matchingAmount: string;
+  }) {
     await this.verifyReviewPage(data);
 
     const confirmBtn = this.page.getByRole('button', { name: 'Confirm & Submit' });
 
-   await expect(confirmBtn).toBeEnabled({ timeout: 300_000 });
-   await this.waitEnabledThenClick(confirmBtn);
+    await expect(confirmBtn).toBeEnabled({ timeout: 300_000 });
+    await this.waitEnabledThenClick(confirmBtn);
 
-  const authorizeBtn = this.page.getByRole('button', { name: /Authorize \$/ });
-  await authorizeBtn.waitFor({ state: 'visible', timeout: 45000 });
-  await authorizeBtn.click();
-  const authenticatingBtn = this.page.getByRole('button', { name: 'Authenticating' });
-if (await authenticatingBtn.isVisible().catch(() => false)) {
-  await authenticatingBtn.waitFor({ state: 'hidden', timeout: 90000 });
-}
+    const authorizeBtn = this.page.getByRole('button', { name: /Authorize \$/ });
+    await authorizeBtn.waitFor({ state: 'visible', timeout: 45000 });
+    await authorizeBtn.click();
+    const authenticatingBtn = this.page.getByRole('button', { name: 'Authenticating' });
+    if (await authenticatingBtn.isVisible().catch(() => false)) {
+      await authenticatingBtn.waitFor({ state: 'hidden', timeout: 90000 });
+    }
 
-  const okBtn = this.page.getByRole('button', { name: 'OK' });
-  await expect(confirmBtn).toBeEnabled({ timeout: 60000 });
+    const okBtn = this.page.getByRole('button', { name: 'OK' });
+    await expect(confirmBtn).toBeEnabled({ timeout: 60000 });
 
-  await okBtn.click();
+    await okBtn.click();
 
-  await okBtn.waitFor({ state: 'hidden', timeout: 15000 });
-}
+    await okBtn.waitFor({ state: 'hidden', timeout: 15000 });
+  }
 }
