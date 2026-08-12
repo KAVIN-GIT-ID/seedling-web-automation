@@ -40,6 +40,7 @@ export class SeedlingPage extends BasePage {
         await locator.click();
         await locator.fill(value);
         await expect(locator).toHaveValue(value, { timeout: 5000 });
+        await locator.blur().catch(() => {});
         await this.page.waitForTimeout(150);
         await expect(locator).toHaveValue(value, { timeout: 5000 }); // re-check after settle, catches the reset-to-empty race
         return;

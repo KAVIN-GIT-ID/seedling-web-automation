@@ -9,9 +9,8 @@ test.describe('Create Seedling - Full Flow', () => {
   test('creates a complete seedling with all steps', async ({ page }) => {
     test.setTimeout(10 * 60 * 1000);
     const seedlingPage = new SeedlingPage(page);
-    const uniqueSuffix = Date.now();
-    const dynamicTitle = `Seedling full flow - ${uniqueSuffix}`;
-    const dynamicCampaignTitle = `Campaign full flow - ${uniqueSuffix}`;
+    const dynamicTitle = `Seedling Full Flow`;
+    const dynamicCampaignTitle = `Campaign Full Flow`;
 
     await page.goto('/');
 
@@ -83,9 +82,8 @@ test.describe('Create Seedling - Full Flow', () => {
   test('creates seedling without goal amount', async ({ page }) => {
     test.setTimeout(10 * 60 * 1000);
     const seedlingPage = new SeedlingPage(page);
-    const uniqueSuffix = Date.now();
-    const dynamicTitle = `Seedling without goal amount - ${uniqueSuffix}`;
-    const dynamicCampaignTitle = `Campaign without goal amount - ${uniqueSuffix}`;
+    const dynamicTitle = `Seedling Without Goal Amount`;
+    const dynamicCampaignTitle = `Campaign Without Goal Amount`;
 
     await page.goto('/');
 
@@ -153,9 +151,8 @@ test.describe('Create Seedling - Full Flow', () => {
   test('creates seedling without ticking end goal checkboxes', async ({ page }) => {
     test.setTimeout(10 * 60 * 1000);
     const seedlingPage = new SeedlingPage(page);
-    const uniqueSuffix = Date.now();
-    const dynamicTitle = `Seedling without ticking end goal checkboxes - ${uniqueSuffix}`;
-    const dynamicCampaignTitle = `Campaign without ticking end goal checkboxes - ${uniqueSuffix}`;
+    const dynamicTitle = `Seedling Without Ticking End Goal Checkboxes`;
+    const dynamicCampaignTitle = `Campaign Without Ticking End Goal Checkboxes`;
 
     await page.goto('/');
 
