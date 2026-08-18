@@ -1,0 +1,133 @@
+name: Playwright Tests - QA
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: 'Test file to run on QA'
+        type: choice
+        required: true
+        options:
+          - all
+          - tests/auth/login.spec.ts
+          - tests/auth/dashboard/dashboard.spec.ts
+          - tests/auth/dashboard/donation.spec.ts
+          - tests/auth/dashboard/donation-comment.spec.ts
+          - tests/auth/seedling/create-seedling.spec.ts
+          - tests/auth/seedling/share-all-channels.spec.ts
+          - tests/unauth/seedling/search-charity.spec.ts
+          - tests/unauth/seedling/share-all-channels.spec.ts
+        default: 'all'
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Get installed Playwright version
+      id: playwright-version
+      run: echo "version=$(npm ls @playwright/test --json | jq -r '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-browsers-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+    - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps
+    - name: Install OS dependencies only (cache hit)
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps
+      
+    - name: Determine Test Command
+      id: set-command
+      run: |
+        COMP="${{ github.event.inputs.component }}"
+        if [ "$COMP" = "all" ]; then
+          CMD="npm run test:qa"
+        else
+          CMD="npm run test:qa -- $COMP"
+        fi
+        echo "TEST_COMMAND=$CMD" >> $GITHUB_ENV
+
+    - name: Run Playwright tests
+      run: |
+        ${{ env.TEST_COMMAND }} 2>&1 | tee test-output.log
+        exit ${PIPESTATUS[0]}
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report-qa
+        path: playwright-report/
+        retention-days: 30
+
+    - name: Deploy report to Surge
+      if: ${{ !cancelled() }}
+      env:
+        SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+      run: npx surge ./playwright-report ${{ github.run_id }}-seedling-qa.surge.sh
+        
+    - name: Prepare Email Body
+      if: ${{ !cancelled() }}
+      run: |
+        REPORT_URL="https://${{ github.run_id }}-seedling-qa.surge.sh"
+        
+        echo "Playwright test run finished." > email-body.txt
+        echo "Status: ${{ job.status }}" >> email-body.txt
+        echo "Environment: QA" >> email-body.txt
+        echo "Component: ${{ github.event.inputs.component }}" >> email-body.txt
+        echo "Branch: ${{ github.ref_name }}" >> email-body.txt
+        echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
+        echo "" >> email-body.txt
+        
+        # Extract failures if the job failed
+        if [ "${{ job.status }}" != "success" ]; then
+          echo "=== APPLICATION ISSUES (MISSING CONTENT) ===" >> email-body.txt
+          
+          MISSING_FOUND=false
+          grep "Locator:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' | sed 's/^[[:space:]]*Locator:[[:space:]]*//' | sort | uniq | while read loc; do
+            MISSING_FOUND=true
+            if echo "$loc" | grep -q "getByText"; then
+              missing_val=$(echo "$loc" | sed -E "s/.*getByText\(['\"]([^'\"]+)['\"]\).*/\1/")
+              echo "❌ Missing text on page: \"$missing_val\"" >> email-body.txt
+            else
+              echo "❌ Missing UI element: $loc" >> email-body.txt
+            fi
+          done
+          
+          if [ "$MISSING_FOUND" = false ]; then
+            echo "❌ Tests failed. See HTML report for detailed breakdown." >> email-body.txt
+          fi
+          
+          echo "=============================================" >> email-body.txt
+          echo "" >> email-body.txt
+        fi
+
+        echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
+        echo "$REPORT_URL" >> email-body.txt
+        echo "" >> email-body.txt
+
+    - name: Send email report
+      if: ${{ !cancelled() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Playwright QA Run ${{ job.status }} - Component: ${{ github.event.inputs.component }}"
+        to: ${{ secrets.TL_EMAIL }}
+        from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
+        body: file://email-body.txt

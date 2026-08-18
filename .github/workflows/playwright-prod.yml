@@ -1,30 +1,19 @@
-name: Playwright Tests
+name: Playwright Tests - PROD
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Environment to run tests against'
-        type: choice
-        required: true
-        options:
-          - qa
-          - prod
-        default: 'qa'
       component:
-        description: 'Test file to run'
+        description: 'Test file to run on PROD'
         type: choice
         required: true
         options:
-          - all
+          - all (runs all 4 read-only tests)
           - tests/auth/login.spec.ts
           - tests/auth/seedling/share-all-channels.spec.ts
           - tests/unauth/seedling/search-charity.spec.ts
           - tests/unauth/seedling/share-all-channels.spec.ts
-          - tests/auth/dashboard/dashboard.spec.ts (QA only)
-          - tests/auth/dashboard/donation.spec.ts (QA only)
-          - tests/auth/dashboard/donation-comment.spec.ts (QA only)
-          - tests/auth/seedling/create-seedling.spec.ts (QA only)
-        default: 'all'
+        default: 'all (runs all 4 read-only tests)'
+
 jobs:
   test:
     timeout-minutes: 60
@@ -59,33 +48,13 @@ jobs:
     - name: Determine Test Command
       id: set-command
       run: |
-        ENV="${{ github.event.inputs.environment }}"
-        RAW_COMP="${{ github.event.inputs.component }}"
-        # Strip any '(QA only)' label to get actual test path
-        COMP=$(echo "$RAW_COMP" | awk '{print $1}')
+        COMP="${{ github.event.inputs.component }}"
+        PROD_ALL_TESTS="tests/auth/login.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts"
         
-        CMD="npm run test:$ENV"
-        PROD_ALLOWED_TESTS="tests/auth/login.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts"
-        
-        if [ "$ENV" = "prod" ]; then
-          if [ "$COMP" = "all" ]; then
-            echo "🔒 Environment is PROD. Running ONLY the 4 read-only tests:"
-            echo "$PROD_ALLOWED_TESTS"
-            CMD="$CMD -- $PROD_ALLOWED_TESTS"
-          elif echo "$PROD_ALLOWED_TESTS" | grep -q "$COMP"; then
-            echo "✅ Selected safe read-only test for PROD: $COMP"
-            CMD="$CMD -- $COMP"
-          else
-            echo "❌ ERROR: '$COMP' is a mutating/donation/creation test and is BLOCKED from running on PROD!"
-            echo "Allowed PROD tests are:"
-            echo "$PROD_ALLOWED_TESTS"
-            exit 1
-          fi
+        if [ "$COMP" = "all (runs all 4 read-only tests)" ]; then
+          CMD="npm run test:prod -- $PROD_ALL_TESTS"
         else
-          # QA environment: run all or specified test
-          if [ "$COMP" != "all" ]; then
-            CMD="$CMD -- $COMP"
-          fi
+          CMD="npm run test:prod -- $COMP"
         fi
         
         echo "TEST_COMMAND=$CMD" >> $GITHUB_ENV
@@ -95,11 +64,10 @@ jobs:
         ${{ env.TEST_COMMAND }} 2>&1 | tee test-output.log
         exit ${PIPESTATUS[0]}
 
-
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report
+        name: playwright-report-prod
         path: playwright-report/
         retention-days: 30
 
@@ -108,16 +76,16 @@ jobs:
       env:
         SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
         SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-      run: npx surge ./playwright-report ${{ github.run_id }}-seedling.surge.sh
+      run: npx surge ./playwright-report ${{ github.run_id }}-seedling-prod.surge.sh
         
     - name: Prepare Email Body
       if: ${{ !cancelled() }}
       run: |
-        REPORT_URL="https://${{ github.run_id }}-seedling.surge.sh"
+        REPORT_URL="https://${{ github.run_id }}-seedling-prod.surge.sh"
         
         echo "Playwright test run finished." > email-body.txt
         echo "Status: ${{ job.status }}" >> email-body.txt
-        echo "Environment: ${{ github.event.inputs.environment }}" >> email-body.txt
+        echo "Environment: PROD" >> email-body.txt
         echo "Component: ${{ github.event.inputs.component }}" >> email-body.txt
         echo "Branch: ${{ github.ref_name }}" >> email-body.txt
         echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
@@ -127,7 +95,6 @@ jobs:
         if [ "${{ job.status }}" != "success" ]; then
           echo "=== APPLICATION ISSUES (MISSING CONTENT) ===" >> email-body.txt
           
-          # Parse locators to create a clean, manager-friendly report
           MISSING_FOUND=false
           grep "Locator:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' | sed 's/^[[:space:]]*Locator:[[:space:]]*//' | sort | uniq | while read loc; do
             MISSING_FOUND=true
@@ -159,7 +126,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Playwright Run ${{ job.status }} - Env: ${{ github.event.inputs.environment }} - Component: ${{ github.event.inputs.component }}"
+        subject: "Playwright PROD Run ${{ job.status }} - Component: ${{ github.event.inputs.component }}"
         to: ${{ secrets.TL_EMAIL }}
         from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
         body: file://email-body.txt
