@@ -51,5 +51,10 @@ export default defineConfig({
       },
       // no "dependencies" key at all = setup never runs for this project
     },
+    {
+      // Standalone API tests — fast REST API execution without browser setup
+      name: 'api',
+      testDir: './tests/api',
+    },
   ],
 });

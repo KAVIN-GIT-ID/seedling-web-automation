@@ -16,6 +16,7 @@ on:
           - tests/auth/seedling/share-all-channels.spec.ts
           - tests/unauth/seedling/search-charity.spec.ts
           - tests/unauth/seedling/share-all-channels.spec.ts
+          - tests/api/oauth-api.spec.ts
         default: 'all'
 
 jobs:

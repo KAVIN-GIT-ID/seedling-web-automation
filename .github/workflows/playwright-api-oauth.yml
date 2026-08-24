@@ -1,0 +1,49 @@
+name: Playwright API OAuth Tests
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment'
+        type: choice
+        required: true
+        options:
+          - qa
+          - prod
+        default: 'qa'
+
+jobs:
+  api-oauth-tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      ENV: ${{ github.event.inputs.environment || 'qa' }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+      APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
+      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+      TWITTER_CLIENT_ID: ${{ secrets.TWITTER_CLIENT_ID }}
+      TWITTER_CLIENT_SECRET: ${{ secrets.TWITTER_CLIENT_SECRET }}
+      TWITTER_REFRESH_TOKEN: ${{ secrets.TWITTER_REFRESH_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright (Core Only for API)
+      run: npx playwright install --with-deps chromium
+
+    - name: Run OAuth API Automation Suite
+      run: npm run test:api
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-api-report
+        path: playwright-report/
+        retention-days: 14
