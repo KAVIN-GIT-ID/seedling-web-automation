@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENV: ${{ github.event.inputs.environment || 'qa' }}
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
@@ -39,7 +40,9 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Run OAuth API Automation Suite
-      run: npm run test:api
+      run: |
+        npm run test:api 2>&1 | tee test-output.log
+        exit ${PIPESTATUS[0]}
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
@@ -47,3 +50,38 @@ jobs:
         name: playwright-api-report
         path: playwright-report/
         retention-days: 14
+
+    - name: Deploy report to Surge
+      if: ${{ !cancelled() }}
+      env:
+        SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+      run: npx surge ./playwright-report ${{ github.run_id }}-seedling-api-oauth.surge.sh
+
+    - name: Prepare Email Body
+      if: ${{ !cancelled() }}
+      run: |
+        REPORT_URL="https://${{ github.run_id }}-seedling-api-oauth.surge.sh"
+        
+        echo "Playwright API OAuth Test Run Finished." > email-body.txt
+        echo "Status: ${{ job.status }}" >> email-body.txt
+        echo "Environment: ${{ github.event.inputs.environment || 'qa' }}" >> email-body.txt
+        echo "Suite: Social OAuth API Automation (Google, Apple, Twitter)" >> email-body.txt
+        echo "Branch: ${{ github.ref_name }}" >> email-body.txt
+        echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
+        echo "" >> email-body.txt
+        echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
+        echo "$REPORT_URL" >> email-body.txt
+
+    - name: Send email report
+      if: ${{ !cancelled() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Playwright API OAuth Run ${{ job.status }} - Environment: ${{ github.event.inputs.environment || 'qa' }}"
+        to: ${{ secrets.TL_EMAIL }}
+        from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
+        body: file://email-body.txt
