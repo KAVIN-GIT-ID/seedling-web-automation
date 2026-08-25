@@ -35,16 +35,44 @@ export class ForgotPasswordPage extends BasePage {
    * Fills the extracted OTP code into the UI 4-digit input fields
    */
   async enterOtp(otpCode: string) {
-    // Collect all currently visible inputs on the modal screen
+    // Wait for UI to transition from email input screen to OTP input screen
+    await this.page.waitForFunction(() => {
+      const inputs = Array.from(document.querySelectorAll('input'));
+      return inputs.some((i) => {
+        const ph = (i.getAttribute('placeholder') || '').toLowerCase();
+        const name = (i.getAttribute('name') || '').toLowerCase();
+        const type = (i.getAttribute('type') || '').toLowerCase();
+        return (
+          i.offsetWidth > 0 &&
+          i.offsetHeight > 0 &&
+          !type.includes('email') &&
+          !name.includes('email') &&
+          !ph.includes('email')
+        );
+      });
+    }, { timeout: 10000 }).catch(() => {});
+
+    // Collect all visible inputs excluding email field
     const allInputs = await this.page.locator('input').all();
     const visibleInputs: Locator[] = [];
     for (const inp of allInputs) {
-      if (await inp.isVisible()) {
+      if (!(await inp.isVisible())) continue;
+
+      const type = (await inp.getAttribute('type')) || '';
+      const name = (await inp.getAttribute('name')) || '';
+      const placeholder = (await inp.getAttribute('placeholder')) || '';
+
+      const isEmailInput =
+        type === 'email' ||
+        name.toLowerCase().includes('email') ||
+        placeholder.toLowerCase().includes('email');
+
+      if (!isEmailInput) {
         visibleInputs.push(inp);
       }
     }
 
-    console.log(`🔍 [ForgotPasswordPage] Found ${visibleInputs.length} visible input field(s) for OTP code.`);
+    console.log(`🔍 [ForgotPasswordPage] Found ${visibleInputs.length} visible OTP input field(s).`);
 
     if (visibleInputs.length >= otpCode.length) {
       // The last N visible inputs correspond to the OTP digit boxes
