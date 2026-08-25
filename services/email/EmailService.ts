@@ -35,6 +35,7 @@ export class EmailService {
 
   /**
    * Connects to real IMAP mailbox and polls in real-time until a matching email arrives.
+   * Strictly filters out older emails by checking message timestamp against sinceDate.
    */
   async waitForEmail(filter: EmailFilter, timeoutMs: number = env.EMAIL_POLL_TIMEOUT): Promise<ReceivedEmail> {
     const startTime = Date.now();
@@ -64,7 +65,14 @@ export class EmailService {
           const searchCriteria: any = { since };
           const messages = client.fetch(searchCriteria, { source: true, envelope: true });
 
+          const messagesList: any[] = [];
           for await (const message of messages) {
+            messagesList.push(message);
+          }
+          // Sort descending by UID to evaluate the NEWEST email first
+          messagesList.sort((a, b) => b.uid - a.uid);
+
+          for (const message of messagesList) {
             if (!message.source) continue;
             const parsed: ParsedMail = await simpleParser(message.source);
             const subject = parsed.subject ?? '';
@@ -72,9 +80,13 @@ export class EmailService {
             const fromEmail = parsed.from ? parsed.from.text : '';
 
             let match = true;
+
+            // 1. Recipient check
             if (filter.recipient && !toEmail.toLowerCase().includes(filter.recipient.toLowerCase())) {
               match = false;
             }
+
+            // 2. Subject pattern check
             if (filter.subjectPattern) {
               if (filter.subjectPattern instanceof RegExp) {
                 if (!filter.subjectPattern.test(subject)) match = false;
@@ -83,8 +95,18 @@ export class EmailService {
               }
             }
 
+            // 3. Strict Timestamp check: Discard emails received BEFORE the test requested the OTP
+            if (filter.sinceDate && parsed.date) {
+              const emailTime = new Date(parsed.date).getTime();
+              const sinceTime = new Date(filter.sinceDate).getTime();
+              // 5 second buffer for clock tolerance
+              if (emailTime < sinceTime - 5000) {
+                match = false;
+              }
+            }
+
             if (match) {
-              console.log(`📩 [EmailService] Real-time email received! Subject: "${subject}"`);
+              console.log(`📩 [EmailService] Real-time email received! Subject: "${subject}" (UID: ${message.uid}, Date: ${parsed.date})`);
               return {
                 id: message.uid.toString(),
                 subject,
