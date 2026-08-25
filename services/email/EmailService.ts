@@ -44,6 +44,9 @@ export class EmailService {
       host: this.host,
       port: this.port,
       secure: this.secure,
+      tls: {
+        rejectUnauthorized: false,
+      },
       auth: {
         user: this.user,
         pass: this.pass,
@@ -101,7 +104,9 @@ export class EmailService {
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     } catch (err: any) {
-      throw new Error(`IMAP connection failed: ${err.message}`);
+      const errorMsg = err?.message || err?.reason || err?.responseText || (err ? String(err) : 'Unknown connection error');
+      console.error(`❌ [EmailService] IMAP connection failed for user ${this.user} on ${this.host}:${this.port}. Details:`, errorMsg);
+      throw new Error(`IMAP connection failed (${this.host}:${this.port}): ${errorMsg}`);
     } finally {
       await client.logout().catch(() => {});
     }
