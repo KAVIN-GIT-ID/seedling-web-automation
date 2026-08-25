@@ -7,12 +7,13 @@ on:
         type: choice
         required: true
         options:
-          - all (runs all 4 read-only tests)
+          - all (runs all read-only tests)
           - tests/auth/login.spec.ts
           - tests/auth/seedling/share-all-channels.spec.ts
           - tests/unauth/seedling/search-charity.spec.ts
           - tests/unauth/seedling/share-all-channels.spec.ts
-        default: 'all (runs all 4 read-only tests)'
+          - tests/api/oauth-api.spec.ts
+        default: 'all (runs all read-only tests)'
 
 jobs:
   test:
@@ -20,6 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ENV: prod
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+      APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
+      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+      TWITTER_CLIENT_ID: ${{ secrets.TWITTER_CLIENT_ID }}
+      TWITTER_CLIENT_SECRET: ${{ secrets.TWITTER_CLIENT_SECRET }}
+      TWITTER_REFRESH_TOKEN: ${{ secrets.TWITTER_REFRESH_TOKEN }}
     permissions:
       contents: write
     steps:
@@ -49,9 +59,9 @@ jobs:
       id: set-command
       run: |
         COMP="${{ github.event.inputs.component }}"
-        PROD_ALL_TESTS="tests/auth/login.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts"
+        PROD_ALL_TESTS="tests/auth/login.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/api/oauth-api.spec.ts"
         
-        if [ "$COMP" = "all (runs all 4 read-only tests)" ]; then
+        if [ "$COMP" = "all (runs all read-only tests)" ] || [ "$COMP" = "all (runs all 4 read-only tests)" ]; then
           CMD="npm run test:prod -- $PROD_ALL_TESTS"
         else
           CMD="npm run test:prod -- $COMP"

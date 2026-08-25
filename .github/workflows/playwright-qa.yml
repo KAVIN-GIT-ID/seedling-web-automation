@@ -9,6 +9,8 @@ on:
         options:
           - all
           - tests/auth/login.spec.ts
+          - tests/auth/forgot-password-otp.spec.ts
+          - tests/auth/email-delivery-verification.spec.ts
           - tests/auth/dashboard/dashboard.spec.ts
           - tests/auth/dashboard/donation.spec.ts
           - tests/auth/dashboard/donation-comment.spec.ts
@@ -25,6 +27,23 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ENV: qa
+      BASE_URL: ${{ secrets.BASE_URL }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
+      IMAP_HOST: ${{ secrets.IMAP_HOST }}
+      IMAP_PORT: ${{ secrets.IMAP_PORT }}
+      IMAP_USER: ${{ secrets.IMAP_USER }}
+      IMAP_PASS: ${{ secrets.IMAP_PASS }}
+      QA_MOCK_AUTH: ${{ secrets.QA_MOCK_AUTH }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+      APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
+      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+      TWITTER_CLIENT_ID: ${{ secrets.TWITTER_CLIENT_ID }}
+      TWITTER_CLIENT_SECRET: ${{ secrets.TWITTER_CLIENT_SECRET }}
+      TWITTER_REFRESH_TOKEN: ${{ secrets.TWITTER_REFRESH_TOKEN }}
     permissions:
       contents: write
     steps:
@@ -92,6 +111,12 @@ jobs:
         echo "Branch: ${{ github.ref_name }}" >> email-body.txt
         echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
         echo "" >> email-body.txt
+
+        if grep -qE "Real-time email|Extracted OTP code|Verified OTP" test-output.log 2>/dev/null; then
+          echo "--- REAL-TIME EMAIL DELIVERY HIGHLIGHTS ---" >> email-body.txt
+          grep -E "Real-time email|Extracted OTP code|Verified OTP" test-output.log | sed 's/^[[:space:]]*//' >> email-body.txt || true
+          echo "" >> email-body.txt
+        fi
         
         # Extract failures if the job failed
         if [ "${{ job.status }}" != "success" ]; then
