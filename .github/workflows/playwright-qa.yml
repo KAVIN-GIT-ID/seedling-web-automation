@@ -27,13 +27,13 @@ jobs:
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       ENV: qa
-      BASE_URL: ${{ secrets.BASE_URL }}
-      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-      TEST_USER_PASS: ${{ secrets.TEST_USER_PASS }}
-      IMAP_HOST: ${{ secrets.IMAP_HOST }}
-      IMAP_PORT: ${{ secrets.IMAP_PORT }}
-      IMAP_USER: ${{ secrets.IMAP_USER }}
-      IMAP_PASS: ${{ secrets.IMAP_PASS }}
+      BASE_URL: ${{ secrets.BASE_URL || 'https://qa.seedlingsocial.org' }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'kavinap@uit.ac.in' }}
+      TEST_USER_PASS: ${{ secrets.TEST_USER_PASS || 'Uit@1234567890' }}
+      IMAP_HOST: ${{ secrets.IMAP_HOST || 'imap.gmail.com' }}
+      IMAP_PORT: ${{ secrets.IMAP_PORT || '993' }}
+      IMAP_USER: ${{ secrets.IMAP_USER || secrets.TEST_USER_EMAIL || 'kavinap@uit.ac.in' }}
+      IMAP_PASS: ${{ secrets.IMAP_PASS || 'yewoyvymmbjqxtus' }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
