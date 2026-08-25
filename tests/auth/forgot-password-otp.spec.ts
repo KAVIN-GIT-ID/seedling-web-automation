@@ -118,6 +118,8 @@ ${receivedEmail.text || receivedEmail.html}`,
       } else {
         await expect(page).not.toHaveURL(/forgot-password|reset-password/);
       }
+      // Pause 1 second so full success screen is recorded in the test video
+      await page.waitForTimeout(1000);
     });
   });
 });

@@ -6,10 +6,11 @@ export class ForgotPasswordPage extends BasePage {
   readonly forgotPasswordLink   = this.page.getByText(/forgot.*password/i).or(this.page.getByRole('link', { name: /forgot.*password/i }));
   readonly emailInput           = this.page.getByRole('textbox', { name: /email/i }).or(this.page.locator('input[type="email"]'));
   readonly sendOtpButton        = this.page.getByRole('button', { name: 'Verify', exact: true }).or(this.page.getByRole('button', { name: /send otp|reset|continue/i }));
-  readonly verifyCodeButton      = this.page.getByRole('button', { name: /verify code/i });
-  readonly newPasswordInput     = this.page.locator('input[name="newPassword"], input[placeholder*="New Password"]');
-  readonly confirmPasswordInput = this.page.locator('input[name="confirmPassword"], input[placeholder*="Confirm Password"]');
-  readonly successMessage       = this.page.getByRole('alert').or(this.page.getByText(/password reset successfully|verification successful|identity confirmed/i));
+  readonly verifyCodeButton      = this.page.getByRole('button', { name: /verify|confirm|submit/i }).or(this.page.locator('button[type="submit"]'));
+  readonly newPasswordInput     = this.page.locator('input[type="password"], input[name="newPassword"], input[name="password"], input[placeholder*="Password"]');
+  readonly confirmPasswordInput = this.page.locator('input[name="confirmPassword"], input[placeholder*="Confirm"]');
+  readonly updatePasswordButton = this.page.getByRole('button', { name: /update|reset|submit|save|confirm|change/i });
+  readonly successMessage       = this.page.getByRole('alert').or(this.page.getByText(/password reset successfully|verification successful|identity confirmed|password updated/i));
 
   constructor(page: Page) {
     super(page);
@@ -34,7 +35,7 @@ export class ForgotPasswordPage extends BasePage {
    * Fills the extracted OTP code into the UI digit input fields
    */
   async enterOtp(otpCode: string) {
-    // Wait for the UI modal to transition to the OTP input screen
+    // Wait for the UI modal to transition to the OTP input screen (Confirm Your Identity)
     await this.page.waitForFunction(() => {
       const inputs = Array.from(document.querySelectorAll('input'));
       return inputs.some((i) => {
@@ -73,14 +74,17 @@ export class ForgotPasswordPage extends BasePage {
 
     console.log(`🔍 [ForgotPasswordPage] Found ${otpInputs.length} visible OTP input field(s).`);
 
-    if (otpInputs.length >= otpCode.length) {
-      const startIndex = otpInputs.length - otpCode.length;
-      for (let i = 0; i < otpCode.length; i++) {
+    // Slice OTP code to match visible digit box count (e.g. 4 boxes)
+    const codeToType = otpInputs.length > 0 ? otpCode.slice(0, otpInputs.length) : otpCode;
+
+    if (otpInputs.length >= codeToType.length) {
+      const startIndex = otpInputs.length - codeToType.length;
+      for (let i = 0; i < codeToType.length; i++) {
         await otpInputs[startIndex + i].focus();
-        await otpInputs[startIndex + i].pressSequentially(otpCode[i], { delay: 50 });
+        await otpInputs[startIndex + i].pressSequentially(codeToType[i], { delay: 50 });
       }
     } else if (otpInputs.length > 0) {
-      await otpInputs[0].fill(otpCode);
+      await otpInputs[0].fill(codeToType);
     }
   }
 
@@ -88,7 +92,7 @@ export class ForgotPasswordPage extends BasePage {
    * Enters the OTP, clicks "Verify Code", and completes the password reset flow
    */
   async completePasswordReset(otpCode: string, newPassword?: string) {
-    // In-step retry: Re-attempts typing OTP locally if UI button is not enabled yet
+    // 1. Enter OTP into the 4 digit boxes
     for (let attempt = 1; attempt <= 2; attempt++) {
       await this.enterOtp(otpCode);
       await this.page.waitForTimeout(400);
@@ -104,13 +108,22 @@ export class ForgotPasswordPage extends BasePage {
       }
     }
 
-    // Fill new password if password reset inputs follow
-    if (newPassword && (await this.newPasswordInput.isVisible({ timeout: 3000 }).catch(() => false))) {
-      await this.newPasswordInput.fill(newPassword);
-      if (await this.confirmPasswordInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await this.confirmPasswordInput.fill(newPassword);
+    // 2. Next Screen: Set New Password Modal
+    if (newPassword) {
+      const passInput = this.newPasswordInput.first();
+      if (await passInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+        console.log(`🔑 [ForgotPasswordPage] On Next Screen: Entering new password.`);
+        await passInput.fill(newPassword);
+
+        const confirmInput = this.confirmPasswordInput.first();
+        if (await confirmInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await confirmInput.fill(newPassword);
+        }
+
+        // Click Update / Save Password button
+        await this.updatePasswordButton.first().click();
+        console.log(`✅ [ForgotPasswordPage] Clicked Update Password button.`);
       }
-      await this.page.getByRole('button', { name: /submit|reset|confirm/i }).first().click();
     }
   }
 

@@ -34,18 +34,11 @@ export class EmailService {
   }
 
   /**
-   * Connects to IMAP mailbox and polls in real-time until a matching email is received.
-   * If real IMAP fails or credentials are mock, returns simulated mock email for safe QA fallback.
+   * Connects to real IMAP mailbox and polls in real-time until a matching email arrives.
    */
   async waitForEmail(filter: EmailFilter, timeoutMs: number = env.EMAIL_POLL_TIMEOUT): Promise<ReceivedEmail> {
     const startTime = Date.now();
-    const since = filter.sinceDate ?? new Date(startTime - 60000); // look back 1 min by default
-
-    // If using mock credentials, use fallback simulator
-    if (this.pass === 'mock-imap-app-password' || env.QA_MOCK_AUTH === 'true') {
-      console.log(`ℹ️ [EmailService] Operating in mock mode for recipient: ${filter.recipient ?? this.user}`);
-      return this.generateMockEmail(filter);
-    }
+    const since = filter.sinceDate ?? new Date(startTime - 60000);
 
     const client = new ImapFlow({
       host: this.host,
@@ -60,12 +53,11 @@ export class EmailService {
 
     try {
       await client.connect();
-      console.log(`✅ [EmailService] Connected to IMAP server ${this.host}:${this.port}`);
+      console.log(`✅ [EmailService] Connected to real IMAP mailbox ${this.host}:${this.port} (${this.user})`);
 
       while (Date.now() - startTime < timeoutMs) {
         const lock = await client.getMailboxLock('INBOX');
         try {
-          // Search unread or recent emails since specified date
           const searchCriteria: any = { since };
           const messages = client.fetch(searchCriteria, { source: true, envelope: true });
 
@@ -89,7 +81,7 @@ export class EmailService {
             }
 
             if (match) {
-              console.log(`📩 [EmailService] Real-time email matched! Subject: "${subject}"`);
+              console.log(`📩 [EmailService] Real-time email received! Subject: "${subject}"`);
               return {
                 id: message.uid.toString(),
                 subject,
@@ -105,30 +97,27 @@ export class EmailService {
           lock.release();
         }
 
-        // Poll every 3 seconds
+        // Poll every 3 seconds for new email
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     } catch (err: any) {
-      console.warn(`⚠️ [EmailService] IMAP connection failed: ${err.message}. Falling back to test mock email.`);
-      return this.generateMockEmail(filter);
+      throw new Error(`IMAP connection failed: ${err.message}`);
     } finally {
       await client.logout().catch(() => {});
     }
 
-    throw new Error(`Timeout (${timeoutMs}ms) exceeded waiting for email with filter: ${JSON.stringify(filter)}`);
+    throw new Error(`Timeout (${timeoutMs}ms) exceeded waiting for real email with filter: ${JSON.stringify(filter)}`);
   }
 
   /**
    * Extracts OTP code (4 to 6 digit number) from email body or subject text.
    */
   extractOtp(emailContent: string): string {
-    // 1. Look for explicit patterns like "code: 123456", "OTP is 654321", "verification code 1234"
     const explicitMatch = emailContent.match(/(?:code|otp|pin|verification)\s*(?:is|:)?\s*(\d{4,6})/i);
     if (explicitMatch && explicitMatch[1]) {
       return explicitMatch[1];
     }
 
-    // 2. Fallback to standalone 4-6 digit sequence
     const digitsMatch = emailContent.match(/\b\d{4,6}\b/);
     if (digitsMatch) {
       return digitsMatch[0];
@@ -138,7 +127,7 @@ export class EmailService {
   }
 
   /**
-   * Extracts action links (e.g. password reset URL, email verification link) from HTML body.
+   * Extracts action links from HTML email body.
    */
   extractLinks(htmlBody: string): string[] {
     const hrefRegex = /href=["'](https?:\/\/[^"']+)["']/gi;
@@ -149,25 +138,5 @@ export class EmailService {
       links.push(match[1]);
     }
     return links;
-  }
-
-  /**
-   * Generates a deterministic mock email for local QA execution when IMAP is in mock mode.
-   */
-  private generateMockEmail(filter: EmailFilter): ReceivedEmail {
-    const mockOtp = '849201';
-    const subject = filter.subjectPattern
-      ? (filter.subjectPattern instanceof RegExp ? 'Your Verification Code (OTP)' : String(filter.subjectPattern))
-      : 'Your OTP Verification Code';
-
-    return {
-      id: 'msg_mock_123',
-      subject,
-      from: 'no-reply@seedlingsocial.org',
-      to: filter.recipient ?? this.user,
-      date: new Date(),
-      text: `Hello,\n\nYour OTP verification code for Seedling Social is: ${mockOtp}.\n\nThis code will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`,
-      html: `<p>Hello,</p><p>Your OTP verification code for Seedling Social is: <strong>${mockOtp}</strong>.</p><p><a href="https://qa.seedlingsocial.org/reset-password?token=mocktoken123">Reset Password Here</a></p>`,
-    };
   }
 }
