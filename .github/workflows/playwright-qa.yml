@@ -10,7 +10,6 @@ on:
           - all
           - tests/auth/login.spec.ts
           - tests/auth/forgot-password-otp.spec.ts
-          - tests/auth/email-delivery-verification.spec.ts
           - tests/auth/dashboard/dashboard.spec.ts
           - tests/auth/dashboard/donation.spec.ts
           - tests/auth/dashboard/donation-comment.spec.ts
