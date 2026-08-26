@@ -8,6 +8,7 @@ on:
         required: true
         options:
           - all
+          - tests/auth/signup-validation.spec.ts
           - tests/auth/login.spec.ts
           - tests/auth/forgot-password-otp.spec.ts
           - tests/auth/dashboard/dashboard.spec.ts
