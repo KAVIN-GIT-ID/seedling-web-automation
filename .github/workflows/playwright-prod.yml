@@ -90,43 +90,14 @@ jobs:
         
     - name: Prepare Email Body
       if: ${{ !cancelled() }}
-      run: |
-        REPORT_URL="https://${{ github.run_id }}-seedling-prod.surge.sh"
-        
-        echo "Playwright test run finished." > email-body.txt
-        echo "Status: ${{ job.status }}" >> email-body.txt
-        echo "Environment: PROD" >> email-body.txt
-        echo "Component: ${{ github.event.inputs.component }}" >> email-body.txt
-        echo "Branch: ${{ github.ref_name }}" >> email-body.txt
-        echo "Run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> email-body.txt
-        echo "" >> email-body.txt
-        
-        # Extract failures if the job failed
-        if [ "${{ job.status }}" != "success" ]; then
-          echo "=== APPLICATION ISSUES (MISSING CONTENT) ===" >> email-body.txt
-          
-          MISSING_FOUND=false
-          grep "Locator:" test-output.log | perl -pe 's/\e\[[0-9;]*m//g' | sed 's/^[[:space:]]*Locator:[[:space:]]*//' | sort | uniq | while read loc; do
-            MISSING_FOUND=true
-            if echo "$loc" | grep -q "getByText"; then
-              missing_val=$(echo "$loc" | sed -E "s/.*getByText\(['\"]([^'\"]+)['\"]\).*/\1/")
-              echo "❌ Missing text on page: \"$missing_val\"" >> email-body.txt
-            else
-              echo "❌ Missing UI element: $loc" >> email-body.txt
-            fi
-          done
-          
-          if [ "$MISSING_FOUND" = false ]; then
-            echo "❌ Tests failed. See HTML report for detailed breakdown." >> email-body.txt
-          fi
-          
-          echo "=============================================" >> email-body.txt
-          echo "" >> email-body.txt
-        fi
-
-        echo "VIEW INTERACTIVE HTML REPORT HERE (One-Click):" >> email-body.txt
-        echo "$REPORT_URL" >> email-body.txt
-        echo "" >> email-body.txt
+      env:
+        JOB_STATUS: ${{ job.status }}
+        TEST_ENV: PROD
+        TEST_COMPONENT: ${{ github.event.inputs.component || 'all' }}
+        TEST_BRANCH: ${{ github.ref_name }}
+        REPORT_URL: https://${{ github.run_id }}-seedling-prod.surge.sh
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: node utils/generate-email-html.js
 
     - name: Send email report
       if: ${{ !cancelled() }}
@@ -136,7 +107,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Playwright PROD Run ${{ job.status }} - Component: ${{ github.event.inputs.component }}"
+        subject: "Playwright PROD Run ${{ job.status }} - Component: ${{ github.event.inputs.component || 'all' }}"
         to: ${{ secrets.TL_EMAIL }}
         from: Seedling Automation <${{ secrets.EMAIL_USERNAME }}>
-        body: file://email-body.txt
+        html_body: file://email-body.html
