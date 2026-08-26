@@ -78,9 +78,10 @@ export class DonationPage extends BasePage {
   // NOTE: amountIndex is the nth "$" amount button on the donation widget (0-based).
   // This matches the recorded flow (.nth(4)) but is positional — if the widget's
   // accessible names become more specific (e.g. "$25"), switch to an exact-name locator.
-  async selectDonationAmount(amountIndex: number) {
-    const amountButtons = this.page.getByRole('button', { name: '$' });
-    const amountBtn = amountButtons.nth(amountIndex);
+  async selectDonationAmount(amountIndex: number = 4, incentiveButtonName?: string) {
+    const amountBtn = incentiveButtonName
+      ? this.page.getByRole('button', { name: incentiveButtonName })
+      : this.page.getByRole('button', { name: '$' }).nth(amountIndex);
     await amountBtn.waitFor({ state: 'visible', timeout: 15000 }); // wait for donation widget to load
     await amountBtn.click();
   }
@@ -118,15 +119,18 @@ export class DonationPage extends BasePage {
   // ─────────────────────────────────────────
   async makeDonation(data: {
     seedlingTitle: string;
-    amountIndex: number;
-    incentiveValue: string;
+    amountIndex?: number;
+    incentiveButtonName?: string;
+    incentiveValue?: string;
   }) {
     const status = await this.openSeedling(data.seedlingTitle);
     if (status === "seedling title not found") {
       return status;
     }
-    await this.selectDonationAmount(data.amountIndex);
-    await this.selectIncentiveOption(data.incentiveValue);
+    await this.selectDonationAmount(data.amountIndex ?? 4, data.incentiveButtonName);
+    if (data.incentiveValue) {
+      await this.selectIncentiveOption(data.incentiveValue);
+    }
     await this.donate();
     await this.skipFollowUpPrompt();
     return "success";

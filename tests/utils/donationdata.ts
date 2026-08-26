@@ -1,8 +1,8 @@
 export const donationTestData = {
   // Existing donation flow data
-  seedlingTitle:       'Payout Check',
+  seedlingTitle:       'Seedling Full Flow',
   amountIndex:         4,
-  incentiveValue:      '718',
+  incentiveValue:      '874',
 
   // Post-donation comment flow data
   incentiveButtonName: '$2 Incentive available',

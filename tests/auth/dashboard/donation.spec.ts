@@ -12,8 +12,8 @@ test.describe('Donation Flow', () => {
     await page.goto('/');
 
     const status = await donationPage.makeDonation({
-      seedlingTitle: seedlingTestData.title,
-      amountIndex: donationTestData.amountIndex,
+      seedlingTitle: donationTestData.seedlingTitle,
+      incentiveButtonName: donationTestData.incentiveButtonName,
       incentiveValue: donationTestData.incentiveValue,
     });
 
