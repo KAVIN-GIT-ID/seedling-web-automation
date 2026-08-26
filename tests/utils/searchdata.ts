@@ -45,4 +45,13 @@ export const charitySearchCases: CharitySearchCase[] = [
     einSnippet: 'EIN: 82-2871439',
     useCharitiesTab: false,
   },
+  {
+    query: 'Operation Crush Cancer',
+    headingName: 'Operation Crush Cancer',
+    descriptionSnippet: '',
+    addressLine1: '20250 DELITA DR',
+    addressLine2: 'WOODLAND HLS, CA, USA, 91364-3522',
+    einSnippet: 'EIN: 85-3022436',
+    useCharitiesTab: false,
+  },
 ];
