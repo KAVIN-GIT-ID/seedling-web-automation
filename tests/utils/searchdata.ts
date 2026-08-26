@@ -13,7 +13,7 @@ export const charitySearchCases: CharitySearchCase[] = [
     query: 'seedling social giving',
     headingName: 'SEEDLING SOCIAL GIVING',
     descriptionSnippet: 'Seedling Social Giving is a dedicated fundraising platform providing nonprofits global exposure to increase awareness of their mission through targeted campaigns. Donors can find, research, and fund their interests in a manner that engages them with like-minded donors and makes giving a fun, socially-connected experience through campaigns, challenges, and calls to action.',
-    addressLine1: 'E LIVE OAK DR',
+    addressLine1: '',
     addressLine2: 'LOS ANGELES, CA, USA, 90068-',
     einSnippet: 'EIN: 99-',
     useCharitiesTab: true,
