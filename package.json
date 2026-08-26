@@ -8,6 +8,8 @@
     "test:api": "cross-env ENV=qa playwright test tests/api",
     "test:api:prod": "cross-env ENV=prod playwright test tests/api",
     "test:email": "cross-env ENV=qa playwright test --project=email",
+    "test:signup": "cross-env ENV=qa playwright test tests/auth/signup-validation.spec.ts",
+    "codegen": "playwright codegen",
     "test:prod": "cross-env ENV=prod playwright test",
     "test:prod:ui": "cross-env ENV=prod playwright test --ui",
     "test:headed": "playwright test --headed",

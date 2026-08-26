@@ -34,7 +34,7 @@ export default defineConfig({
       // Tests that NEED a logged-in session (existing tests/auth/... files)
       name: 'authenticated',
       testDir: './tests/auth',
-      testIgnore: ['**/auth.setup.ts', '**/*email*.spec.ts', '**/*otp*.spec.ts'],
+      testIgnore: ['**/auth.setup.ts', '**/*email*.spec.ts', '**/*otp*.spec.ts', '**/*signup*.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'auth/user.json',
@@ -42,10 +42,10 @@ export default defineConfig({
       dependencies: ['setup'],   // <- login runs first, only for THIS project
     },
     {
-      // Standalone Email OTP and Delivery Verification tests
+      // Standalone Email OTP, Delivery & Sign Up Verification tests
       name: 'email',
       testDir: './tests/auth',
-      testMatch: ['**/*email*.spec.ts', '**/*otp*.spec.ts'],
+      testMatch: ['**/*email*.spec.ts', '**/*otp*.spec.ts', '**/*signup*.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
       },

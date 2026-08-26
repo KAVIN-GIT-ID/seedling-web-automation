@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
 
 export abstract class BasePage {
-  constructor(protected readonly page: Page) {}
+  constructor(public readonly page: Page) {}
 
   async waitForPageLoad() {
     await this.page.waitForLoadState('load');
