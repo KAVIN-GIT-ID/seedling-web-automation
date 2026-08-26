@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class SignUpPage extends BasePage {
@@ -67,25 +67,32 @@ export class SignUpPage extends BasePage {
     await salutationBtn.click();
   }
 
+  async typeHumanLike(locator: Locator, text: string) {
+    await locator.click();
+    await locator.clear();
+    await locator.pressSequentially(text, { delay: 75 });
+    await this.page.waitForTimeout(300);
+  }
+
   async fillFullName(name: string) {
-    await this.fullNameInput.click();
-    await this.fullNameInput.fill(name);
+    await this.typeHumanLike(this.fullNameInput, name);
   }
 
   async selectDateOfBirth(monthIndexOrValue: string, dayIndexOrValue: string, yearValue: string) {
     await this.dobMonthSelect.selectOption(monthIndexOrValue);
+    await this.page.waitForTimeout(200);
     await this.dobDaySelect.selectOption(dayIndexOrValue);
+    await this.page.waitForTimeout(200);
     await this.dobYearSelect.selectOption(yearValue);
+    await this.page.waitForTimeout(300);
   }
 
   async fillEmailOrPhone(emailOrPhone: string) {
-    await this.emailOrPhoneInput.click();
-    await this.emailOrPhoneInput.fill(emailOrPhone);
+    await this.typeHumanLike(this.emailOrPhoneInput, emailOrPhone);
   }
 
   async fillPassword(password: string) {
-    await this.passwordInput.click();
-    await this.passwordInput.fill(password);
+    await this.typeHumanLike(this.passwordInput, password);
   }
 
   async setTermsCheckbox(check: boolean = true) {
@@ -97,6 +104,15 @@ export class SignUpPage extends BasePage {
 
   async submitSignUp() {
     await this.signUpButton.click();
+  }
+
+  async submitSignUpWithRetry() {
+    await this.signUpButton.click();
+    const serverError = this.page.getByText(/Failed to register!/i);
+    if (await serverError.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await this.page.waitForTimeout(2000);
+      await this.signUpButton.click();
+    }
   }
 
   async fillForm(details: {
@@ -118,6 +134,44 @@ export class SignUpPage extends BasePage {
     await this.fillPassword(details.password);
     if (details.agreeTerms !== false) {
       await this.setTermsCheckbox(true);
+    }
+  }
+
+  async fillValidDefaults(overrides?: {
+    salutation?: 'Mr.' | 'Mrs.' | 'Ms.' | 'Mx.' | 'Dr.' | 'Prof.';
+    fullName?: string;
+    dob?: { month: string; day: string; year: string };
+    email?: string;
+    password?: string;
+    agreeTerms?: boolean;
+  }) {
+    const defaults = {
+      salutation: 'Mr.' as const,
+      fullName: 'Kavin Automation',
+      dob: { month: '2', day: '3', year: '2000' },
+      email: 'valid.kavin.qa@gmail.com',
+      password: 'ValidPassword123!',
+      agreeTerms: true,
+      ...overrides,
+    };
+
+    if (defaults.salutation) {
+      await this.selectSalutation(defaults.salutation);
+    }
+    if (defaults.fullName !== undefined) {
+      await this.fillFullName(defaults.fullName);
+    }
+    if (defaults.dob) {
+      await this.selectDateOfBirth(defaults.dob.month, defaults.dob.day, defaults.dob.year);
+    }
+    if (defaults.email !== undefined) {
+      await this.fillEmailOrPhone(defaults.email);
+    }
+    if (defaults.password !== undefined) {
+      await this.fillPassword(defaults.password);
+    }
+    if (defaults.agreeTerms !== undefined) {
+      await this.setTermsCheckbox(defaults.agreeTerms);
     }
   }
 
