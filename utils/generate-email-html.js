@@ -42,6 +42,69 @@ function generateEmailHtml() {
     }
   }
 
+  let suiteSummaryHtml = '';
+  const jsonReportPath = path.resolve('test-results.json');
+  if (fs.existsSync(jsonReportPath)) {
+    try {
+      const reportJson = JSON.parse(fs.readFileSync(jsonReportPath, 'utf8'));
+      let rows = [];
+      const extractSuites = (suiteList) => {
+        suiteList.forEach(suite => {
+          if (suite.specs && suite.specs.length > 0) {
+            suite.specs.forEach(spec => {
+              const file = spec.file ? path.relative(process.cwd(), spec.file) : suite.title;
+              const ok = spec.ok;
+              const durationMs = spec.tests ? spec.tests.reduce((acc, t) => acc + (t.results ? t.results.reduce((rAcc, r) => rAcc + r.duration, 0) : 0), 0) : 0;
+              const durationSec = (durationMs / 1000).toFixed(1) + 's';
+              rows.push({ file, ok, durationSec });
+            });
+          }
+          if (suite.suites) {
+            extractSuites(suite.suites);
+          }
+        });
+      };
+
+      if (reportJson.suites) {
+        extractSuites(reportJson.suites);
+      }
+
+      if (rows.length > 0) {
+        suiteSummaryHtml = `
+        <div style="margin-top: 22px; margin-bottom: 22px;">
+          <div class="card-title">📊 Manager Executive Summary — Sequential Execution Order</div>
+          <table class="meta-table" style="font-size: 13px; width: 100%;">
+            <thead>
+              <tr style="background: #F3F4F6; text-align: left;">
+                <th style="padding: 10px 14px;">#</th>
+                <th style="padding: 10px 14px;">Test File</th>
+                <th style="padding: 10px 14px;">Status</th>
+                <th style="padding: 10px 14px;">Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((r, idx) => `
+                <tr>
+                  <td style="padding: 10px 14px; font-weight: bold; width: 30px;">${idx + 1}</td>
+                  <td style="padding: 10px 14px;"><code>${escapeHtml(r.file)}</code></td>
+                  <td style="padding: 10px 14px;">
+                    <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: ${r.ok ? '#E8F5E9' : '#FDECEA'}; color: ${r.ok ? '#2E7D32' : '#C62828'};">
+                      ${r.ok ? '✓ PASSED' : '✕ FAILED'}
+                    </span>
+                  </td>
+                  <td style="padding: 10px 14px; color: #6B7280;">${r.durationSec}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        `;
+      }
+    } catch (err) {
+      console.error('Could not parse test-results.json:', err);
+    }
+  }
+
   const isSuccess = status === 'success';
   const badgeBg = isSuccess ? '#E8F5E9' : '#FDECEA';
   const badgeColor = isSuccess ? '#2E7D32' : '#C62828';
@@ -265,6 +328,8 @@ function generateEmailHtml() {
           <td class="meta-val">${formattedTime}</td>
         </tr>
       </table>
+
+      ${suiteSummaryHtml}
 
       ${highlights ? `
       <div class="card-highlights">
