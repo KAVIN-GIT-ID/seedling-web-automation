@@ -9,3 +9,6 @@ node_modules/
 /auth/
 email-body.html
 
+# Agent configuration rules
+AGENTS.md
+.agents/
