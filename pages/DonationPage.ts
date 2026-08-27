@@ -14,10 +14,13 @@ export class DonationPage extends BasePage {
   // scroll, so the target heading may not exist in the DOM yet. Scroll down
   // in increments, polling for the heading after each scroll, instead of
   // assuming it's already on screen.
-  async openSeedling(seedlingTitle: string, maxScrollAttempts = 20, maxRefreshes = 3): Promise<"success" | "seedling title not found"> {
-    await this.page.waitForTimeout(3000); // Allow home page feed to settle
+  async openSeedling(seedlingTitle: string, maxScrollAttempts = 10, maxRefreshes = 2): Promise<"success" | "seedling title not found"> {
+    await this.page.waitForTimeout(2000); // Allow home page feed to settle
 
     const seedlingHeadingLocator = this.page.getByRole('heading', { name: seedlingTitle });
+    const feedEndLocator = this.page.getByText("You've reached the end.", { exact: false })
+      .or(this.page.getByText("The world always needs more Seedlings.", { exact: false }))
+      .or(this.page.getByText("Why not create your own?", { exact: false }));
 
     for (let refreshAttempt = 0; refreshAttempt < maxRefreshes; refreshAttempt++) {
       for (let scrollAttempt = 0; scrollAttempt < maxScrollAttempts; scrollAttempt++) {
@@ -32,14 +35,21 @@ export class DonationPage extends BasePage {
           return "success";
         }
 
-        // 2. Not visible, scroll down to load more content
+        // 2. Check if home page feed end screen is reached ("You've reached the end.")
+        const isEndScreenVisible = await feedEndLocator.isVisible().catch(() => false);
+        if (isEndScreenVisible) {
+          console.log(`[DonationPage] Home feed end screen reached on pass ${refreshAttempt + 1}.`);
+          break; // Stop scrolling down further in this pass
+        }
+
+        // 3. Not visible, scroll down to load more content
         await this.scrollDown();
       }
       
-      // 3. Exhausted scroll attempts; reload and try again
+      // 4. Reload and try again (up to 2 retries) if seedling wasn't found
       if (refreshAttempt < maxRefreshes - 1) {
         await this.page.reload({ waitUntil: 'domcontentloaded' });
-        await this.page.waitForTimeout(2000);
+        await this.page.waitForTimeout(1500);
       }
     }
 
@@ -69,7 +79,7 @@ export class DonationPage extends BasePage {
       await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
     }
     await this.page.mouse.wheel(0, 800);
-    await this.page.waitForTimeout(1500); // Allow time for lazy-loaded components to render
+    await this.page.waitForTimeout(1000); // Allow time for lazy-loaded components to render
   }
 
   // ─────────────────────────────────────────

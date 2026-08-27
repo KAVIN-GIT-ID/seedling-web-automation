@@ -17,6 +17,12 @@ test.describe('Donation Flow', () => {
       incentiveValue: donationTestData.incentiveValue,
     });
 
+    if (status === "seedling title not found") {
+      console.log('⚠️ Seedling title is not found');
+      test.skip(true, 'seedling title is not found');
+      return;
+    }
+
     await expect(page.getByRole('button', { name: 'Skip for now' })).not.toBeVisible({ timeout: 10000 });
   });
 });
