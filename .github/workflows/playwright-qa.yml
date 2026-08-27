@@ -94,8 +94,8 @@ jobs:
     - name: Deploy report to Surge
       if: ${{ !cancelled() }}
       env:
-        SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+        SURGE_LOGIN: ${{ secrets.SURGE_LOGIN || 'kavinap@uit.ac.in' }}
+        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN || '8d9007929b91f647f65f8f3667da6ae0' }}
       run: npx surge ./playwright-report ${{ github.run_id }}-seedling-qa.surge.sh
         
     - name: Prepare Email Body
