@@ -1,8 +1,9 @@
 import { test } from '@playwright/test';
 import { SearchPage } from '../../../pages/SearchPage';
 import { charitySearchCases } from '../../utils/searchdata';
+import { env } from '../../config/env';
 
-test.describe('Guest - Charity Search @prod', () => {
+test.describe(`Guest - Charity Search ${env.ENV_TAG}`, () => {
   for (const searchCase of charitySearchCases) {
     test(`Search and view "${searchCase.query}"`, async ({ page }) => {
       const searchPage = new SearchPage(page);

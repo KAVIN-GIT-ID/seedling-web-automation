@@ -3,7 +3,7 @@ import { SeedlingCommentPage } from '../../../pages/SeedlingCommentPage';
 import { env } from '../../config/env';
 import { seedlingTestData } from '../../utils/seedlingdata';
 
-test.describe('Guest Comment Flow - Sign In & Auto Redirect @qa @prod', () => {
+test.describe(`Guest Comment Flow - Sign In & Auto Redirect ${env.ENV_TAG}`, () => {
   test('unregistered user attempts comment/interaction, signs in, redirects back, and posts comment', async ({ page }) => {
     const commentPage = new SeedlingCommentPage(page);
     const commentText = `Automated comment - ${Date.now()}`;

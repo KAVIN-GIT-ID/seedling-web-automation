@@ -1,0 +1,261 @@
+{
+  "config": {
+    "configFile": "/Users/uitglobalsolutions/anti automation/seedling-automation/playwright.config.ts",
+    "rootDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth.setup.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "authenticated",
+        "name": "authenticated",
+        "testDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests/auth",
+        "testIgnore": [
+          "**/auth.setup.ts",
+          "**/*email*.spec.ts",
+          "**/*otp*.spec.ts",
+          "**/*signup*.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "email",
+        "name": "email",
+        "testDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests/auth",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*email*.spec.ts",
+          "**/*otp*.spec.ts",
+          "**/*signup*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "unauth",
+        "name": "unauth",
+        "testDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests/unauth",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "api",
+        "name": "api",
+        "testDir": "/Users/uitglobalsolutions/anti automation/seedling-automation/tests/api",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 5,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "unauth/seedling/share-all-channels.spec.ts",
+      "file": "unauth/seedling/share-all-channels.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Guest - Seedling Video Share - all channels @qa",
+          "file": "unauth/seedling/share-all-channels.spec.ts",
+          "line": 5,
+          "column": 15,
+          "specs": [
+            {
+              "title": "Guest - Copy Link",
+              "ok": true,
+              "tags": [
+                "qa"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unauth",
+                  "projectName": "unauth",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5ceab267849ae92dff51-5f26b13e33a9c7dabeee",
+              "file": "unauth/seedling/share-all-channels.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "Guest - Download",
+              "ok": true,
+              "tags": [
+                "qa"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unauth",
+                  "projectName": "unauth",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5ceab267849ae92dff51-4cfb29a4de21bc5f430d",
+              "file": "unauth/seedling/share-all-channels.spec.ts",
+              "line": 24,
+              "column": 7
+            },
+            {
+              "title": "Guest - Email",
+              "ok": true,
+              "tags": [
+                "qa"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unauth",
+                  "projectName": "unauth",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5ceab267849ae92dff51-83f7e788081cb2caaf64",
+              "file": "unauth/seedling/share-all-channels.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "Guest - Facebook",
+              "ok": true,
+              "tags": [
+                "qa"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unauth",
+                  "projectName": "unauth",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5ceab267849ae92dff51-b154db56277b1841613c",
+              "file": "unauth/seedling/share-all-channels.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "Guest - Twitter",
+              "ok": true,
+              "tags": [
+                "qa"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "unauth",
+                  "projectName": "unauth",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5ceab267849ae92dff51-8fa7f6429d66f8b9b174",
+              "file": "unauth/seedling/share-all-channels.spec.ts",
+              "line": 41,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-02T13:03:29.062Z",
+    "duration": 64.23300000000003,
+    "expected": 0,
+    "skipped": 5,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

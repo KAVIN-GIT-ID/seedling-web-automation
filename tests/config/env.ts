@@ -1,6 +1,8 @@
 // dotenv is already loaded in playwright.config.ts before this runs
 
 export const env = {
+  ENV: (process.env['ENV'] || 'qa').trim(),
+  ENV_TAG: `@${(process.env['ENV'] || 'qa').trim()}`,
   BASE_URL: (process.env['BASE_URL'] || 'https://qa.seedlingsocial.org').trim(),
   API_BASE_URL: (process.env['API_BASE_URL'] || 'https://qa.seedlingsocial.org/api').trim(),
   TEST_USER_EMAIL: (process.env['TEST_USER_EMAIL'] || 'kavinap@uit.ac.in').trim(),
