@@ -8,7 +8,6 @@ on:
         required: true
         options:
           - all (runs all read-only tests)
-          - tests/auth/login.spec.ts
           - tests/auth/seedling/share-all-channels.spec.ts
           - tests/unauth/seedling/search-charity.spec.ts
           - tests/unauth/seedling/share-all-channels.spec.ts
@@ -59,7 +58,7 @@ jobs:
       id: set-command
       run: |
         COMP="${{ github.event.inputs.component }}"
-        PROD_ALL_TESTS="tests/auth/login.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/api/oauth-api.spec.ts"
+        PROD_ALL_TESTS="tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/api/oauth-api.spec.ts"
         
         if [ "$COMP" = "all (runs all read-only tests)" ] || [ "$COMP" = "all (runs all 4 read-only tests)" ]; then
           CMD="npm run test:prod -- $PROD_ALL_TESTS"

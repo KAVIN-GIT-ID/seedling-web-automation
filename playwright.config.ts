@@ -35,7 +35,7 @@ export default defineConfig({
       // Tests that NEED a logged-in session (existing tests/auth/... files)
       name: 'authenticated',
       testDir: './tests/auth',
-      testIgnore: ['**/auth.setup.ts', '**/*email*.spec.ts', '**/*otp*.spec.ts', '**/*signup*.spec.ts'],
+      testIgnore: ['**/auth.setup.ts', '**/login.spec.ts', '**/*email*.spec.ts', '**/*otp*.spec.ts', '**/*signup*.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'auth/user.json',

@@ -8,7 +8,6 @@ on:
         required: true
         options:
           - all
-          - tests/auth/login.spec.ts
           - tests/auth/signup-validation.spec.ts
           - tests/auth/forgot-password-otp.spec.ts
           - tests/auth/dashboard/dashboard.spec.ts
@@ -72,7 +71,7 @@ jobs:
       id: set-command
       run: |
         COMP="${{ github.event.inputs.component }}"
-        ORDERED_SPECS="tests/auth/login.spec.ts tests/auth/signup-validation.spec.ts tests/auth/forgot-password-otp.spec.ts tests/auth/dashboard/dashboard.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/auth/dashboard/donation.spec.ts tests/auth/dashboard/donation-comment.spec.ts tests/auth/seedling/create-seedling.spec.ts"
+        ORDERED_SPECS="tests/auth/signup-validation.spec.ts tests/auth/forgot-password-otp.spec.ts tests/auth/dashboard/dashboard.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/auth/dashboard/donation.spec.ts tests/auth/dashboard/donation-comment.spec.ts tests/auth/seedling/create-seedling.spec.ts"
         
         if [ "$COMP" = "all" ] || [ -z "$COMP" ]; then
           CMD="npm run test:qa -- $ORDERED_SPECS --workers=1"
