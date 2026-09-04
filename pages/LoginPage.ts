@@ -8,7 +8,9 @@ export class LoginPage extends BasePage {
   private readonly passwordInput     = this.page.getByRole('textbox', { name: 'Password*' });
   private readonly signInButton      = this.page.getByRole('button', { name: 'Sign In' });
   private readonly continueButton    = this.page.getByRole('button', { name: 'Continue' });
-  private readonly errorMessage      = this.page.getByRole('alert');
+  private readonly errorMessage      = this.page.locator(
+    '[role="dialog"], [role="alert"], .alert, .error-message, .toast-error, .text-danger, .ant-notification-notice-error, .swal2-modal, [aria-modal="true"]'
+  ).first();
 
   constructor(page: Page) {
     super(page);
@@ -19,14 +21,19 @@ export class LoginPage extends BasePage {
   }
 
   async acceptCookies() {
-    await this.continueButton.click();
+    if (await this.continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await this.continueButton.click().catch(() => {});
+    }
   }
 
   async openSignInForm() {
-    await this.signInMenuItem.click();
+    if (await this.signInMenuItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await this.signInMenuItem.click();
+    }
   }
 
   async fillCredentials(email: string, password: string) {
+    await this.emailInput.waitFor({ state: 'visible', timeout: 15000 });
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
   }
@@ -44,13 +51,23 @@ export class LoginPage extends BasePage {
     await this.submit();
     await this.waitForPageLoad();
 
-    if (await this.errorMessage.isVisible({ timeout: 2000 }).catch(() => false)) {
-      const text = await this.errorMessage.textContent();
-      throw new Error(`Login failed with UI error: ${text?.trim()}`);
+    const err = await this.getErrorMessage(3000);
+    if (err) {
+      throw new Error(`Login failed with UI error: ${err}`);
     }
   }
 
-  async getErrorMessage(): Promise<string | null> {
-    return this.errorMessage.textContent();
+  async getErrorMessage(timeout = 15000): Promise<string | null> {
+    try {
+      await this.errorMessage.waitFor({ state: 'visible', timeout });
+      const text = await this.errorMessage.textContent();
+      return text?.trim() ?? null;
+    } catch {
+      const fallback = this.page.getByText(/invalid credentials|wrong password|incorrect/i).first();
+      if (await fallback.isVisible({ timeout: 2000 }).catch(() => false)) {
+        return (await fallback.textContent())?.trim() ?? null;
+      }
+      return null;
+    }
   }
 }
