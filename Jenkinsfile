@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS-20'
+    }
+
     options {
         timeout(time: 60, unit: 'MINUTES')
         ansiColor('xterm')
