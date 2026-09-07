@@ -13,11 +13,6 @@ pipeline {
 
     parameters {
         choice(
-            name: 'ENVIRONMENT',
-            choices: ['qa', 'prod'],
-            description: 'Target test environment'
-        )
-        choice(
             name: 'COMPONENT',
             choices: [
                 'all',
@@ -32,14 +27,14 @@ pipeline {
                 'tests/auth/dashboard/donation-comment.spec.ts',
                 'tests/api/oauth-api.spec.ts'
             ],
-            description: 'Select test spec to run'
+            description: 'Select test spec to run on QA'
         )
     }
 
     environment {
         CI = 'true'
-        ENV = "${params.ENVIRONMENT}"
-        BASE_URL = "${params.ENVIRONMENT == 'qa' ? 'https://qa.seedlingsocial.org' : 'https://seedlingsocial.org'}"
+        ENV = 'qa'
+        BASE_URL = 'https://qa.seedlingsocial.org'
     }
 
     stages {
@@ -70,9 +65,9 @@ pipeline {
                     def orderedSpecs = "tests/auth/signup-validation.spec.ts tests/auth/forgot-password-otp.spec.ts tests/auth/dashboard/dashboard.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/auth/dashboard/donation.spec.ts tests/auth/dashboard/donation-comment.spec.ts tests/auth/seedling/create-seedling.spec.ts"
 
                     if (params.COMPONENT == 'all') {
-                        sh "npx cross-env ENV=${params.ENVIRONMENT} playwright test ${orderedSpecs} --workers=1"
+                        sh "npm run test:qa -- ${orderedSpecs} --workers=1"
                     } else {
-                        sh "npx cross-env ENV=${params.ENVIRONMENT} playwright test ${params.COMPONENT}"
+                        sh "npm run test:qa -- ${params.COMPONENT}"
                     }
                 }
             }
