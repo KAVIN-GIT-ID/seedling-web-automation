@@ -35,6 +35,15 @@ pipeline {
         CI = 'true'
         ENV = 'qa'
         BASE_URL = 'https://qa.seedlingsocial.org'
+        SURGE_LOGIN = 'kavinap@uit.ac.in'
+        SURGE_TOKEN = '8d9007929b91f647f65f8f3667da6ae0'
+        EMAIL_HOST = 'smtp.gmail.com'
+        EMAIL_PORT = '465'
+        EMAIL_USERNAME = 'kavinap@uit.ac.in'
+        EMAIL_PASSWORD = 'yewoyvymmbjqxtus'
+        TEST_USER_EMAIL = 'kavinap@uit.ac.in'
+        IMAP_PASS = 'yewoyvymmbjqxtus'
+        TL_EMAIL = 'kavinap@uit.ac.in'
     }
 
     stages {
@@ -54,7 +63,6 @@ pipeline {
 
         stage('Install Playwright Browser') {
             steps {
-                // If running in Docker as root or with permissions, install chromium and deps
                 sh 'npx playwright install --with-deps chromium || npx playwright install chromium'
             }
         }
@@ -64,11 +72,10 @@ pipeline {
                 script {
                     def orderedSpecs = "tests/auth/signup-validation.spec.ts tests/auth/forgot-password-otp.spec.ts tests/auth/dashboard/dashboard.spec.ts tests/auth/seedling/share-all-channels.spec.ts tests/unauth/seedling/search-charity.spec.ts tests/unauth/seedling/share-all-channels.spec.ts tests/auth/dashboard/donation.spec.ts tests/auth/dashboard/donation-comment.spec.ts tests/auth/seedling/create-seedling.spec.ts"
 
-                    if (params.COMPONENT == 'all') {
-                        sh "npm run test:qa -- ${orderedSpecs} --workers=1"
-                    } else {
-                        sh "npm run test:qa -- ${params.COMPONENT}"
-                    }
+                    def testCmd = (params.COMPONENT == 'all') ? "npm run test:qa -- ${orderedSpecs} --workers=1" : "npm run test:qa -- ${params.COMPONENT}"
+
+                    // Log output to test-output.log for email summary parsing (just like GitHub Actions)
+                    sh "${testCmd} 2>&1 | tee test-output.log"
                 }
             }
         }
@@ -76,7 +83,26 @@ pipeline {
 
     post {
         always {
-            // Publish Playwright HTML Report in Jenkins UI
+            script {
+                // 1. Deploy HTML report to Surge (same domain pattern as GitHub Actions)
+                def surgeDomain = "jenkins-${BUILD_NUMBER}-seedling-qa.surge.sh"
+                sh "npx --yes surge ./playwright-report ${surgeDomain} || true"
+
+                // 2. Prepare and send formatted email report
+                withEnv([
+                    "JOB_STATUS=${currentBuild.currentResult ?: 'SUCCESS'}",
+                    "TEST_ENV=QA",
+                    "TEST_COMPONENT=${params.COMPONENT ?: 'all'}",
+                    "TEST_BRANCH=main",
+                    "REPORT_URL=https://${surgeDomain}",
+                    "RUN_URL=${env.BUILD_URL}"
+                ]) {
+                    sh "node utils/generate-email-html.js || true"
+                    sh "node utils/send-email.js || true"
+                }
+            }
+
+            // 3. Publish report and artifacts in Jenkins UI
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -85,11 +111,10 @@ pipeline {
                 reportFiles: 'index.html',
                 reportName: 'Playwright HTML Report'
             ])
-            // Archive screenshots, traces, and test results
             archiveArtifacts artifacts: 'test-results/**, videos/**', allowEmptyArchive: true
         }
         failure {
-            echo "Tests failed! Check the Playwright HTML Report in the left sidebar."
+            echo "Pipeline failed! Please check the Playwright HTML Report or your email."
         }
     }
 }
