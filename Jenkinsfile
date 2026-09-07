@@ -17,17 +17,18 @@ pipeline {
             choices: [
                 'all',
                 'tests/auth/signup-validation.spec.ts',
+                'tests/auth/login.spec.ts',
                 'tests/auth/forgot-password-otp.spec.ts',
                 'tests/auth/dashboard/dashboard.spec.ts',
+                'tests/auth/dashboard/donation.spec.ts',
+                'tests/auth/dashboard/donation-comment.spec.ts',
                 'tests/auth/seedling/create-seedling.spec.ts',
                 'tests/auth/seedling/share-all-channels.spec.ts',
                 'tests/unauth/seedling/search-charity.spec.ts',
                 'tests/unauth/seedling/share-all-channels.spec.ts',
-                'tests/auth/dashboard/donation.spec.ts',
-                'tests/auth/dashboard/donation-comment.spec.ts',
                 'tests/api/oauth-api.spec.ts'
             ],
-            description: 'Select test spec to run on QA'
+            description: 'Test file to run on QA'
         )
     }
 
