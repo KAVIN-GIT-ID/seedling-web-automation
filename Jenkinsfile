@@ -90,7 +90,7 @@ pipeline {
 
                 // 2. Prepare and send formatted email report
                 withEnv([
-                    "JOB_STATUS=${currentBuild.currentResult ?: 'SUCCESS'}",
+                    "JOB_STATUS=${(currentBuild.currentResult ?: 'SUCCESS').toLowerCase()}",
                     "TEST_ENV=QA",
                     "TEST_COMPONENT=${params.COMPONENT ?: 'all'}",
                     "TEST_BRANCH=main",

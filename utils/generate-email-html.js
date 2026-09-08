@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 function generateEmailHtml() {
-  const status = process.env.JOB_STATUS || 'success';
+  const status = (process.env.JOB_STATUS || 'success').toLowerCase();
   const envName = (process.env.TEST_ENV || 'QA').toUpperCase();
   const component = process.env.TEST_COMPONENT || 'all';
   const reportUrl = process.env.REPORT_URL || '#';
@@ -42,6 +42,7 @@ function generateEmailHtml() {
     }
   }
 
+  let allTestsPassed = false;
   let suiteSummaryHtml = '';
   const jsonReportPath = path.resolve('test-results.json');
   if (fs.existsSync(jsonReportPath)) {
@@ -70,6 +71,7 @@ function generateEmailHtml() {
       }
 
       if (rows.length > 0) {
+        allTestsPassed = rows.every(r => r.ok);
         suiteSummaryHtml = `
         <div style="margin-top: 22px; margin-bottom: 22px;">
           <div class="card-title">📊 Manager Executive Summary — Sequential Execution Order</div>
@@ -105,7 +107,7 @@ function generateEmailHtml() {
     }
   }
 
-  const isSuccess = status === 'success';
+  const isSuccess = allTestsPassed || status === 'success';
   const badgeBg = isSuccess ? '#E8F5E9' : '#FDECEA';
   const badgeColor = isSuccess ? '#2E7D32' : '#C62828';
   const badgeText = isSuccess ? '✓ PASSED' : '✕ FAILED';
@@ -357,7 +359,7 @@ function generateEmailHtml() {
           <a href="${reportUrl}" target="_blank" class="btn-primary">View Playwright Report</a>
         </div>
         <div style="margin-top: 10px;">
-          <a href="${runUrl}" target="_blank" class="btn-secondary">View GitHub Actions Run Log</a>
+          <a href="${runUrl}" target="_blank" class="btn-secondary">${(runUrl.includes('jenkins') || runUrl.includes(':808')) ? 'View Jenkins Build Log' : 'View GitHub Actions Run Log'}</a>
         </div>
       </div>
 
